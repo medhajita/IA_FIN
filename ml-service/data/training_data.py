@@ -107,4 +107,26 @@ TRAINING_DATA = [
     ("Leroy Merlin bricolage", "Logement"),
     ("Loyer studio étudiant", "Logement"),
     ("Agence immobilière frais", "Logement"),
+
+    # Salaire (8)
+    ("Virement salaire octobre", "Salaire"),
+    ("Salaire mensuel net", "Salaire"),
+    ("Paiement salaire employeur", "Salaire"),
+    ("Traitement mensuel novembre", "Salaire"),
+    ("Virement employeur paie", "Salaire"),
+    ("Net à payer salaire", "Salaire"),
+    ("Salaire CDI mensuel", "Salaire"),
+    ("Virement salaire décembre", "Salaire"),
+
+    # Autre revenu (9)
+    ("Remboursement frais professionnels", "Autre revenu"),
+    ("Freelance mission développement", "Autre revenu"),
+    ("Allocation chômage CAF", "Autre revenu"),
+    ("Dividendes actions portefeuille", "Autre revenu"),
+    ("Prime annuelle performance", "Autre revenu"),
+    ("Indemnité transport employeur", "Autre revenu"),
+    ("Honoraires consultant", "Autre revenu"),
+    ("Prestation service client", "Autre revenu"),
+    ("Remboursement sécurité sociale", "Autre revenu"),
+    ("Bonus fin d'année", "Autre revenu"),
 ]

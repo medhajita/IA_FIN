@@ -18,7 +18,7 @@ const RULES = [
     id: 3,
     keywords: [
       'netflix', 'spotify', 'amazon prime', 'disney', 'canal', 'sfr',
-      'orange', 'free', 'bouygues', 'google', 'apple', 'microsoft', 'adobe',
+      'orange', 'free mobile', 'freebox', 'bouygues', 'google', 'apple', 'microsoft', 'adobe',
     ],
   },
   {
@@ -38,6 +38,20 @@ const RULES = [
     id: 6,
     keywords: [
       'loyer', 'edf', 'gaz', 'eau', 'charges', 'assurance habitation',
+    ],
+  },
+  {
+    id: 8,
+    keywords: [
+      'salaire', 'paie', 'paye', 'virement employeur', 'virement salaire',
+      'traitement mensuel', 'net à payer',
+    ],
+  },
+  {
+    id: 9,
+    keywords: [
+      'freelance', 'remboursement', 'allocation', 'caf', 'dividende',
+      'prime', 'bonus', 'indemnité', 'prestation', 'honoraires',
     ],
   },
 ];
