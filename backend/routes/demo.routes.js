@@ -28,11 +28,18 @@ router.post('/seed', async (req, res) => {
     }
 
     const rows = await parseCSV(DEMO_CSV);
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+
     for (const row of rows) {
       const category_id = categorizeByRules(row.description);
+      // Remap dates to current month so dashboard + recommendations work
+      const day = row.date.slice(8, 10);
+      const date = `${currentYear}-${currentMonth}-${day}`;
       await Transaction.create({
         user_id: user.id,
-        date: row.date,
+        date,
         description: row.description,
         amount: Math.abs(row.amount),
         type: row.type,
