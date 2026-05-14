@@ -9,6 +9,7 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 const recommendationRoutes = require('./routes/recommendation.routes');
 const goalRoutes = require('./routes/goal.routes');
 const chatbotRoutes = require('./routes/chatbot.routes');
+const demoRoutes = require('./routes/demo.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +28,9 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api/demo', demoRoutes);
+}
 
 sequelize.authenticate()
   .then(() => console.log('✅ Connected to Supabase PostgreSQL'))
