@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const sequelize = require('./config/database');
+const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,6 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'backend', db: 'supabase' });
 });
+
+app.use('/api/auth', authRoutes);
 
 sequelize.authenticate()
   .then(() => console.log('✅ Connected to Supabase PostgreSQL'))
