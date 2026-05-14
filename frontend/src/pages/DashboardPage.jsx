@@ -11,6 +11,12 @@ import Badge from '../components/ui/Badge';
 import { getSummary, getByCategory, getMonthlyEvolution } from '../services/dashboardService';
 import api from '../services/api';
 
+const REC_STYLES = {
+  high:   { card: 'bg-red-50 border-red-200',    badge: 'bg-red-100 text-red-700',    label: 'Urgent' },
+  medium: { card: 'bg-yellow-50 border-yellow-200', badge: 'bg-yellow-100 text-yellow-700', label: 'Attention' },
+  low:    { card: 'bg-blue-50 border-blue-200',   badge: 'bg-blue-100 text-blue-700',  label: 'Info' },
+};
+
 function fmt(amount) {
   return Number(amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
 }
@@ -32,6 +38,7 @@ export default function DashboardPage() {
   const [categories, setCategories] = useState([]);
   const [evolution, setEvolution] = useState([]);
   const [recentTxns, setRecentTxns] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -43,11 +50,12 @@ export default function DashboardPage() {
     setLoading(true);
     setError('');
     try {
-      const [sumRes, catRes, evoRes, txnRes] = await Promise.all([
+      const [sumRes, catRes, evoRes, txnRes, recRes] = await Promise.all([
         getSummary(m),
         getByCategory(m),
         getMonthlyEvolution(),
         api.get('/transactions', { params: { type: undefined } }),
+        api.get('/recommendations'),
       ]);
       setSummary(sumRes.data.data);
       setCategories(catRes.data.data.categories);
@@ -58,6 +66,7 @@ export default function DashboardPage() {
         }))
       );
       setRecentTxns(txnRes.data.data.transactions.slice(0, 5));
+      setRecommendations(recRes.data.data.recommendations);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load dashboard');
     } finally {
@@ -203,6 +212,29 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Recommendations */}
+      {recommendations.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-base font-semibold text-gray-900 mb-4">Recommandations personnalisées</h3>
+          <div className="space-y-3">
+            {recommendations.map((rec, i) => {
+              const style = REC_STYLES[rec.priority] || REC_STYLES.low;
+              return (
+                <div key={i} className={`flex items-start gap-3 p-4 rounded-lg border ${style.card}`}>
+                  <span className="text-xl shrink-0">💡</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-800">{rec.message}</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${style.badge}`}>
+                    {style.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Recent Transactions */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
