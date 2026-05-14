@@ -1,7 +1,9 @@
 node_modules
 .env
+backend/env
 __pycache__
 venv
 dist
 *.pkl
 /backend/uploads
+.DS_Store
