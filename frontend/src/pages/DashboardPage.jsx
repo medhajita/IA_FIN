@@ -73,7 +73,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!summary || summary.transactionCount === 0) {
+  if (recentTxns.length === 0 && summary?.transactionCount === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-10 text-center max-w-sm w-full">
