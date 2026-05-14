@@ -1,8 +1,37 @@
 const fs = require('fs');
 const path = require('path');
 const { Op } = require('sequelize');
+const axios = require('axios');
 const { Transaction, Category } = require('../models');
 const { parseCSV } = require('../utils/csvParser');
+const { categorizeByRules } = require('../utils/categorizer');
+
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:5001';
+
+const CATEGORY_NAME_TO_ID = {
+  'alimentation': 1,
+  'transport': 2,
+  'abonnements': 3,
+  'loisirs': 4,
+  'santé': 5,
+  'logement': 6,
+};
+
+async function getCategoryIdFromML(description) {
+  try {
+    const { data } = await axios.post(`${ML_SERVICE_URL}/predict`, { description }, { timeout: 3000 });
+    const name = (data.category || '').toLowerCase();
+    return CATEGORY_NAME_TO_ID[name] || null;
+  } catch {
+    return null;
+  }
+}
+
+async function resolveCategory(description) {
+  const ruleId = categorizeByRules(description);
+  if (ruleId !== null) return ruleId;
+  return getCategoryIdFromML(description);
+}
 
 async function uploadCSV(req, res) {
   if (!req.file) {
@@ -18,13 +47,14 @@ async function uploadCSV(req, res) {
 
     for (const row of rows) {
       try {
+        const category_id = await resolveCategory(row.description);
         await Transaction.create({
           user_id: req.user.id,
           date: row.date,
           description: row.description,
           amount: row.amount,
           type: row.type,
-          category_id: null,
+          category_id,
         });
         imported++;
       } catch (err) {
@@ -86,4 +116,25 @@ async function updateTransactionCategory(req, res) {
   }
 }
 
-module.exports = { uploadCSV, getTransactions, updateTransactionCategory };
+async function recategorize(req, res) {
+  try {
+    const uncategorized = await Transaction.findAll({
+      where: { user_id: req.user.id, category_id: null },
+    });
+
+    let updated = 0;
+    for (const txn of uncategorized) {
+      const category_id = await resolveCategory(txn.description);
+      if (category_id) {
+        await txn.update({ category_id });
+        updated++;
+      }
+    }
+
+    return res.status(200).json({ data: { updated }, message: `${updated} transactions categorized` });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { uploadCSV, getTransactions, updateTransactionCategory, recategorize };
