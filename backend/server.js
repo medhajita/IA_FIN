@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const sequelize = require('./config/database');
 const authRoutes = require('./routes/auth.routes');
+const transactionRoutes = require('./routes/transaction.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -17,6 +18,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 sequelize.authenticate()
   .then(() => console.log('✅ Connected to Supabase PostgreSQL'))
