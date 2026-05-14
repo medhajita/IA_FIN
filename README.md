@@ -11,12 +11,12 @@ Personal finance web app — track spending, get AI-powered recommendations.
 | ML Service | Python + Flask + scikit-learn | 5001 |
 | Database | Supabase PostgreSQL (remote) | — |
 
-## How to Run
+## Setup
 
 ### 1. Clone & get .env
 ```bash
 git clone <repo-url>
-# Ask Wassim for the backend/.env file — never commit it
+# Ask Wassim for backend/.env — never commit it
 ```
 
 ### 2. Backend
@@ -39,3 +39,10 @@ cd ml-service
 pip install -r requirements.txt
 python app.py
 ```
+
+### 5. Docker (optional)
+```bash
+docker-compose up --build
+```
+
+> Database is hosted on Supabase — no local PostgreSQL needed.
