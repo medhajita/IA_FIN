@@ -27,7 +27,8 @@ async function getCategoryIdFromML(description) {
   }
 }
 
-async function resolveCategory(description) {
+async function resolveCategory(description, type) {
+  if (type === 'income') return null;
   const ruleId = categorizeByRules(description);
   if (ruleId !== null) return ruleId;
   return getCategoryIdFromML(description);
@@ -47,7 +48,7 @@ async function uploadCSV(req, res) {
 
     for (const row of rows) {
       try {
-        const category_id = await resolveCategory(row.description);
+        const category_id = await resolveCategory(row.description, row.type);
         await Transaction.create({
           user_id: req.user.id,
           date: row.date,
@@ -124,7 +125,7 @@ async function recategorize(req, res) {
 
     let updated = 0;
     for (const txn of uncategorized) {
-      const category_id = await resolveCategory(txn.description);
+      const category_id = await resolveCategory(txn.description, txn.type);
       if (category_id) {
         await txn.update({ category_id });
         updated++;
