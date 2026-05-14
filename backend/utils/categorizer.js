@@ -4,7 +4,7 @@ const RULES = [
     keywords: [
       'carrefour', 'lidl', 'aldi', 'leclerc', 'monoprix', 'franprix',
       'intermarché', 'picard', 'restaurant', 'mcdo', 'mcdonald', 'burger',
-      'pizza', 'sushi', 'uber eats', 'deliveroo', 'just eat',
+      'pizza', 'sushi', 'uber eats', 'ubereats', 'deliveroo', 'just eat',
     ],
   },
   {
