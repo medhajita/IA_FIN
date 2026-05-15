@@ -1,0 +1,31 @@
+date,description,montant,type
+2025-10-01,Salaire octobre,2800.00,income
+2025-10-02,Carrefour Market,-67.50,expense
+2025-10-03,RATP Navigo,-86.40,expense
+2025-10-04,Netflix,-15.99,expense
+2025-10-05,Uber Eats,-32.80,expense
+2025-10-06,Pharmacie Centrale,-18.90,expense
+2025-10-07,Spotify,-9.99,expense
+2025-10-08,Carrefour,-54.20,expense
+2025-10-09,SNCF Paris Lyon,-45.00,expense
+2025-10-10,Loyer octobre,-850.00,expense
+2025-10-11,EDF Electricité,-62.40,expense
+2025-10-12,Orange Mobile,-29.99,expense
+2025-10-13,McDonald's,-14.50,expense
+2025-10-14,Fnac Livre,-24.99,expense
+2025-10-15,Virement freelance,450.00,income
+2025-10-16,Lidl,-43.80,expense
+2025-10-17,Uber,-12.30,expense
+2025-10-18,Amazon Prime,-6.99,expense
+2025-10-19,Sushi Restaurant,-38.00,expense
+2025-10-20,Monoprix,-51.60,expense
+2025-10-21,Decathlon,-49.90,expense
+2025-10-22,Disney+,-8.99,expense
+2025-10-23,Dentiste,-80.00,expense
+2025-10-24,SNCF Bordeaux,-67.00,expense
+2025-10-25,Intermarché,-39.70,expense
+2025-10-26,Bolt Taxi,-16.50,expense
+2025-10-27,Canal+,-19.99,expense
+2025-10-28,Pizza Hut,-28.00,expense
+2025-10-29,Mutuelle Santé,-55.00,expense
+2025-10-30,Carrefour Bio,-61.30,expense

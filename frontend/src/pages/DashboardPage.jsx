@@ -4,12 +4,13 @@ import {
   PieChart, Pie, Cell, Tooltip as PieTooltip, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as BarTooltip, ResponsiveContainer,
 } from 'recharts';
-import { Upload } from 'lucide-react';
+import { Upload, PlayCircle } from 'lucide-react';
 import StatCard from '../components/ui/StatCard';
 import Spinner from '../components/ui/Spinner';
 import Badge from '../components/ui/Badge';
 import { getSummary, getByCategory, getMonthlyEvolution } from '../services/dashboardService';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const REC_STYLES = {
   high:   { card: 'bg-red-50 border-red-200',    badge: 'bg-red-100 text-red-700',    label: 'Urgent' },
@@ -41,6 +42,8 @@ export default function DashboardPage() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [seeding, setSeeding] = useState(false);
+  const { login } = useAuth();
 
   useEffect(() => {
     fetchAll(month);
@@ -82,6 +85,21 @@ export default function DashboardPage() {
     );
   }
 
+  async function loadDemo() {
+    setSeeding(true);
+    try {
+      const res = await api.post('/demo/seed');
+      const { token, user } = res.data.data;
+      login(token, user);
+      fetchAll('2025-10');
+      setMonth('2025-10');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Demo seed failed');
+    } finally {
+      setSeeding(false);
+    }
+  }
+
   if (recentTxns.length === 0 && summary?.transactionCount === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -89,13 +107,23 @@ export default function DashboardPage() {
           <Upload className="w-10 h-10 text-gray-300 mx-auto mb-4" />
           <h2 className="text-lg font-semibold text-gray-900 mb-2">No data yet</h2>
           <p className="text-sm text-gray-500 mb-6">Import your first CSV to see your dashboard.</p>
-          <Link
-            to="/transactions"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            <Upload className="w-4 h-4" />
-            Import CSV
-          </Link>
+          <div className="flex flex-col gap-3">
+            <Link
+              to="/transactions"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Upload className="w-4 h-4" />
+              Import CSV
+            </Link>
+            <button
+              onClick={loadDemo}
+              disabled={seeding}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <PlayCircle className="w-4 h-4" />
+              {seeding ? 'Loading demo...' : 'Load demo data'}
+            </button>
+          </div>
         </div>
       </div>
     );
