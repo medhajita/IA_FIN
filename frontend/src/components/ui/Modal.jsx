@@ -13,23 +13,38 @@ export default function Modal({ isOpen, onClose, title, children }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 16, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)',
+      }}
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+        style={{
+          background: 'var(--bg-primary)', borderRadius: 'var(--radius-card)',
+          border: '1px solid var(--border)',
+          width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto',
+          boxShadow: '0 24px 48px rgba(0,0,0,0.18)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '16px 20px', borderBottom: '1px solid var(--border)',
+        }}>
+          <h3 style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{title}</h3>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            style={{
+              background: 'var(--bg-secondary)', border: 'none', cursor: 'pointer',
+              borderRadius: 8, padding: '6px', display: 'flex', alignItems: 'center',
+            }}
           >
-            <X className="w-4 h-4" />
+            <X size={15} color="var(--text-secondary)" strokeWidth={1.75} />
           </button>
         </div>
-        <div className="px-6 py-4">{children}</div>
+        <div style={{ padding: '20px' }}>{children}</div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { TrendingUp, Mail, Lock, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -19,7 +19,6 @@ export default function LoginPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!form.email || !form.password) return setError('Email and password are required.');
-
     setIsLoading(true);
     try {
       const res = await api.post('/auth/login', form);
@@ -34,76 +33,87 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-xl mb-4">
-            <LogIn className="w-6 h-6 text-white" />
+    <div style={{
+      minHeight: '100vh', background: 'var(--bg-secondary)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+    }}>
+      <div style={{ width: '100%', maxWidth: 400 }}>
+
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 16, background: 'var(--blue)',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+          }}>
+            <TrendingUp size={26} color="#fff" strokeWidth={1.75} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-          <p className="text-gray-500 mt-1 text-sm">Sign in to your AI Financial Coach</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: '0 0 6px' }}>
+            Welcome back
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
+            Sign in to FinancIA
+          </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <div className="card" style={{ padding: 28 }}>
           {error && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-6 text-sm">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'var(--red-bg)', border: '1px solid var(--red-bg)',
+              color: 'var(--red-text)', borderRadius: 'var(--radius-sm)',
+              padding: '10px 14px', marginBottom: 20, fontSize: 13,
+            }}>
+              <AlertCircle size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                Email
+              </label>
+              <div className="input-icon-wrap">
+                <Mail size={15} className="icon-left" strokeWidth={1.75} />
                 <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="alice@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  type="email" name="email" value={form.email}
+                  onChange={handleChange} placeholder="alice@example.com"
+                  className="input-field"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                Password
+              </label>
+              <div className="input-icon-wrap">
+                <Lock size={15} className="icon-left" strokeWidth={1.75} />
                 <input
-                  type="password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="Your password"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  type="password" name="password" value={form.password}
+                  onChange={handleChange} placeholder="Your password"
+                  className="input-field"
                 />
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                'Sign in'
-              )}
+            <button type="submit" disabled={isLoading} className="btn-primary" style={{ width: '100%', marginTop: 4 }}>
+              {isLoading
+                ? <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                : 'Sign in'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)', marginTop: 20, marginBottom: 0 }}>
             No account yet?{' '}
-            <Link to="/register" className="text-indigo-600 hover:underline font-medium">
+            <Link to="/register" style={{ color: 'var(--blue)', fontWeight: 500, textDecoration: 'none' }}>
               Create one
             </Link>
           </p>
         </div>
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

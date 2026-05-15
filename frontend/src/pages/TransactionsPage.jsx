@@ -1,6 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Upload, Download, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { uploadCSV, getTransactions, updateCategory } from '../services/transactionService';
+import {
+  Upload, Download, AlertCircle, CheckCircle2,
+  ChevronLeft, ChevronRight, Search, X, TrendingUp, TrendingDown, Wallet,
+  ShoppingBasket, Car, RefreshCw, Ticket, HeartPulse, Home,
+  MinusCircle, Banknote, ArrowUpCircle,
+} from 'lucide-react';
+
+const CATEGORY_ICONS = {
+  'Alimentation':  { icon: ShoppingBasket, bg: 'var(--green-bg)',    color: 'var(--green)'  },
+  'Transport':     { icon: Car,            bg: 'var(--blue-bg)',     color: 'var(--blue)'   },
+  'Abonnements':   { icon: RefreshCw,      bg: 'var(--purple-bg)',   color: 'var(--purple)' },
+  'Loisirs':       { icon: Ticket,         bg: 'var(--orange-bg)',   color: 'var(--orange)' },
+  'Santé':         { icon: HeartPulse,     bg: 'var(--red-bg)',      color: 'var(--red)'    },
+  'Logement':      { icon: Home,           bg: 'var(--teal-bg)',     color: 'var(--teal)'   },
+  'Autre dépense': { icon: MinusCircle,    bg: 'var(--bg-tertiary)', color: 'var(--text-secondary)' },
+  'Salaire':       { icon: Banknote,       bg: 'var(--green-bg)',    color: 'var(--green)'  },
+  'Autre revenu':  { icon: ArrowUpCircle,  bg: 'var(--green-bg)',    color: 'var(--green)'  },
+};
+import { uploadCSV, updateCategory } from '../services/transactionService';
 import api from '../services/api';
 
 const PAGE_SIZE = 15;
@@ -16,23 +33,25 @@ const ALL_CATEGORIES = [
 function fmt(amount) {
   return Number(amount).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
 }
-
 function fmtDate(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR');
 }
 
 export default function TransactionsPage() {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [filters, setFilters] = useState({ type: '', category_id: '', startDate: '', endDate: '' });
+  const [dateDisplay, setDateDisplay] = useState({ start: '', end: '' });
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+
+  const [showImport, setShowImport] = useState(false);
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadAlert, setUploadAlert] = useState(null);
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef();
-
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [filters, setFilters] = useState({ type: '', category_id: '', startDate: '', endDate: '' });
-  const [page, setPage] = useState(1);
 
   const fetchTransactions = useCallback(async (activeFilters) => {
     setLoading(true);
@@ -53,6 +72,13 @@ export default function TransactionsPage() {
   }, []);
 
   useEffect(() => { fetchTransactions(filters); }, [filters]);
+
+  useEffect(() => {
+    if (transactions.length > 0 && !dateDisplay.start) {
+      const sorted = [...transactions].map(t => t.date).sort();
+      setDateDisplay({ start: sorted[0], end: sorted[sorted.length - 1] });
+    }
+  }, [transactions]);
 
   function handleDrop(e) {
     e.preventDefault();
@@ -88,214 +114,344 @@ export default function TransactionsPage() {
     } catch { /* silent */ }
   }
 
-  const paginated = transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const totalPages = Math.ceil(transactions.length / PAGE_SIZE);
+  const totalIncome   = transactions.filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount), 0);
+  const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+  const net           = totalIncome - totalExpenses;
+
+  const filtered   = transactions.filter(t => !search || t.description.toLowerCase().includes(search.toLowerCase()));
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
-      {/* Upload Zone */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Import CSV</h2>
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
+            Transactions
+          </h1>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
+            {loading ? '…' : `${transactions.length} transaction${transactions.length !== 1 ? 's' : ''}`}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowImport(v => !v)}
+          className="btn-primary"
+          style={{ gap: 7, fontSize: 14, padding: '9px 18px' }}
+        >
+          <Upload size={15} strokeWidth={1.75} />
+          Import CSV
+        </button>
+      </div>
+
+      {/* ── Stat cards ── */}
+      {!loading && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-[14px]">
+          {[
+            { label: 'INCOME',   value: `+${fmt(totalIncome)}`,   color: 'var(--green)', Icon: TrendingUp,   cls: '' },
+            { label: 'EXPENSES', value: `-${fmt(totalExpenses)}`, color: 'var(--red)',   Icon: TrendingDown, cls: '' },
+            { label: 'NET',      value: `${net >= 0 ? '+' : ''}${fmt(net)}`, color: net >= 0 ? 'var(--green)' : 'var(--red)', Icon: Wallet, cls: 'col-span-2 md:col-span-1 justify-self-center md:justify-self-auto w-[calc(50%-7px)] md:w-auto' },
+          ].map(({ label, value, color, Icon, cls }) => (
+            <div key={label} className={`card ${cls}`}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                <Icon size={13} color={color} strokeWidth={2} />
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.07em', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                  {label}
+                </span>
+              </div>
+              <p style={{ fontSize: 26, fontWeight: 700, color, letterSpacing: '-0.5px', margin: 0 }}>{value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Import CSV (toggled) ── */}
+      {showImport && <div className="card">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Import CSV</h2>
+          <a href="/example.csv" download style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--blue)', textDecoration: 'none', fontWeight: 500 }}>
+            <Download size={14} strokeWidth={1.75} />
+            Download sample
+          </a>
+        </div>
 
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-            dragging ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
-          }`}
+          style={{
+            border: `2px dashed ${dragging ? 'var(--blue)' : 'var(--border)'}`,
+            background: dragging ? 'var(--blue-bg)' : 'var(--bg-secondary)',
+            borderRadius: 'var(--radius-sm)', padding: '40px 20px',
+            textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s',
+          }}
         >
-          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          <Upload size={28} color="var(--text-tertiary)" strokeWidth={1.5} style={{ margin: '0 auto 10px', display: 'block' }} />
           {file ? (
-            <p className="text-sm font-medium text-indigo-600">{file.name}</p>
+            <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--blue)', margin: 0 }}>{file.name}</p>
           ) : (
             <>
-              <p className="text-sm font-medium text-gray-700">Drag & drop your CSV here, or click to browse</p>
-              <p className="text-xs text-gray-400 mt-1">Max 5 MB · .csv only</p>
+              <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', margin: '0 0 4px' }}>
+                Drag & drop your CSV here, or click to browse
+              </p>
+              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: 0 }}>Max 5 MB · .csv only</p>
             </>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv"
-            className="hidden"
-            onChange={(e) => { setFile(e.target.files[0] || null); e.target.value = ''; }}
-          />
+          <input ref={fileInputRef} type="file" accept=".csv" style={{ display: 'none' }}
+            onChange={(e) => { setFile(e.target.files[0] || null); e.target.value = ''; }} />
         </div>
 
-        <div className="flex items-center gap-3 mt-4">
-          <button
-            onClick={handleUpload}
-            disabled={!file || uploading}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-          >
+        <div style={{ marginTop: 16 }}>
+          <button onClick={handleUpload} disabled={!file || uploading} className="btn-primary">
             {uploading
-              ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              : <Upload className="w-4 h-4" />}
+              ? <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+              : <Upload size={14} strokeWidth={1.75} />}
             {uploading ? 'Importing…' : 'Import'}
           </button>
-          <a
-            href="/example.csv"
-            download
-            className="flex items-center gap-1.5 text-sm text-indigo-600 hover:underline"
-          >
-            <Download className="w-4 h-4" />
-            Download sample CSV
-          </a>
         </div>
 
         {uploadAlert && (
-          <div className={`flex items-center gap-2 mt-4 px-4 py-3 rounded-lg text-sm border ${
-            uploadAlert.type === 'success'
-              ? 'bg-green-50 border-green-200 text-green-700'
-              : 'bg-red-50 border-red-200 text-red-700'
-          }`}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8, marginTop: 14,
+            padding: '10px 14px', borderRadius: 'var(--radius-sm)', fontSize: 13,
+            background: uploadAlert.type === 'success' ? 'var(--green-bg)' : 'var(--red-bg)',
+            color: uploadAlert.type === 'success' ? 'var(--green-text)' : 'var(--red-text)',
+          }}>
             {uploadAlert.type === 'success'
-              ? <CheckCircle className="w-4 h-4 shrink-0" />
-              : <AlertCircle className="w-4 h-4 shrink-0" />}
+              ? <CheckCircle2 size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
+              : <AlertCircle size={15} strokeWidth={2} style={{ flexShrink: 0 }} />}
             {uploadAlert.message}
           </div>
         )}
+      </div>}
+
+      {/* ── Search ── */}
+      <div className="card" style={{ padding: '12px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Search size={16} color="var(--text-tertiary)" strokeWidth={1.75} style={{ flexShrink: 0 }} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Search transactions by description..."
+            style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 14, color: 'var(--text-primary)', outline: 'none' }}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex' }}>
+              <X size={14} color="var(--text-tertiary)" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Transactions Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Transactions
-          {!loading && <span className="ml-2 text-sm font-normal text-gray-400">({transactions.length})</span>}
-        </h2>
+      {/* ── Filters ── */}
+      <div className="card" style={{ padding: '12px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', padding: 3, gap: 2 }}>
+            {[{ v: '', l: 'All' }, { v: 'income', l: 'Income' }, { v: 'expense', l: 'Expense' }].map(({ v, l }) => {
+              const active = filters.type === v;
+              return (
+                <button key={v} onClick={() => setFilters(f => ({ ...f, type: v }))} style={{
+                  padding: '5px 14px', borderRadius: 'calc(var(--radius-sm) - 2px)',
+                  fontSize: 13, fontWeight: active ? 600 : 500,
+                  background: active ? 'var(--blue)' : 'transparent',
+                  color: active ? '#fff' : 'var(--text-secondary)',
+                  border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                }}>{l}</button>
+              );
+            })}
+          </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3 mb-5">
-          <select
-            value={filters.type}
-            onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="">All types</option>
-            <option value="income">Income</option>
-            <option value="expense">Expense</option>
-          </select>
-
-          <select
-            value={filters.category_id}
-            onChange={(e) => setFilters((f) => ({ ...f, category_id: e.target.value }))}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
+          <select value={filters.category_id}
+            onChange={(e) => setFilters(f => ({ ...f, category_id: e.target.value }))}
+            className="input-field" style={{ width: 'auto', padding: '6px 12px', fontSize: 13 }}>
             <option value="">All categories</option>
-            {ALL_CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
+            {ALL_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
 
-          <input
-            type="date"
-            value={filters.startDate}
-            onChange={(e) => setFilters((f) => ({ ...f, startDate: e.target.value }))}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            type="date"
-            value={filters.endDate}
-            onChange={(e) => setFilters((f) => ({ ...f, endDate: e.target.value }))}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>From</span>
+            <input type="date"
+              value={filters.startDate || dateDisplay.start}
+              onChange={(e) => {
+                const v = e.target.value;
+                setDateDisplay(d => ({ ...d, start: v }));
+                setFilters(f => ({ ...f, startDate: v }));
+                setPage(1);
+              }}
+              className="input-field" style={{ width: 'auto', padding: '6px 12px', fontSize: 13 }} />
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>To</span>
+            <input type="date"
+              value={filters.endDate || dateDisplay.end}
+              onChange={(e) => {
+                const v = e.target.value;
+                setDateDisplay(d => ({ ...d, end: v }));
+                setFilters(f => ({ ...f, endDate: v }));
+                setPage(1);
+              }}
+              className="input-field" style={{ width: 'auto', padding: '6px 12px', fontSize: 13 }} />
+          </div>
 
           {(filters.type || filters.category_id || filters.startDate || filters.endDate) && (
-            <button
-              onClick={() => setFilters({ type: '', category_id: '', startDate: '', endDate: '' })}
-              className="text-sm text-gray-500 hover:text-gray-700 px-3 py-2 border border-gray-200 rounded-lg"
-            >
+            <button onClick={() => {
+              const sorted = [...transactions].map(t => t.date).sort();
+              setDateDisplay({ start: sorted[0], end: sorted[sorted.length - 1] });
+              setFilters({ type: '', category_id: '', startDate: '', endDate: '' });
+            }}
+              className="btn-ghost" style={{ padding: '6px 12px', fontSize: 13 }}>
               Clear
             </button>
           )}
         </div>
+      </div>
 
+      {/* ── Table ── */}
+      <div className="card">
         {loading ? (
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse" />
+              <div key={i} style={{ height: 36, background: 'var(--bg-tertiary)', borderRadius: 8, animation: 'pulse 1.5s infinite' }} />
             ))}
           </div>
         ) : error ? (
-          <div className="flex items-center gap-2 text-red-600 text-sm py-4">
-            <AlertCircle className="w-4 h-4" /> {error}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--red)', fontSize: 13, padding: '16px 0' }}>
+            <AlertCircle size={15} strokeWidth={2} /> {error}
           </div>
-        ) : transactions.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <Upload className="w-10 h-10 mx-auto mb-3 opacity-40" />
-            <p className="font-medium text-gray-500">No transactions yet.</p>
-            <p className="text-sm mt-1">Import a CSV file to get started.</p>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 0' }}>
+            <Search size={32} strokeWidth={1.5} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4, color: 'var(--text-tertiary)' }} />
+            <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', margin: '0 0 4px' }}>
+              {search ? 'No matching transactions.' : 'No transactions yet.'}
+            </p>
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            {/* ── Mobile card list (hidden on md+) ── */}
+            <div className="md:hidden">
+              {paginated.map((t, i) => {
+                const catName = ALL_CATEGORIES.find(c => c.id === t.category_id)?.name || t.category?.name;
+                const cfg     = catName ? CATEGORY_ICONS[catName] : null;
+                const CatIcon = cfg?.icon;
+                return (
+                  <div key={t.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px 0',
+                    borderBottom: i < paginated.length - 1 ? '1px solid var(--border)' : 'none',
+                  }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                      background: cfg ? cfg.bg : 'var(--bg-tertiary)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {CatIcon
+                        ? <CatIcon size={17} strokeWidth={1.75} color={cfg.color} />
+                        : <Wallet size={17} strokeWidth={1.75} color="var(--text-secondary)" />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {t.description}
+                      </p>
+                      <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
+                        {fmtDate(t.date)}{catName ? ` · ${catName}` : ''}
+                      </p>
+                    </div>
+                    <div style={{ flexShrink: 0, textAlign: 'right' }}>
+                      <p style={{ fontSize: 15, fontWeight: 700, color: t.type === 'income' ? 'var(--green)' : 'var(--red)', margin: 0 }}>
+                        {t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── Desktop table (hidden on mobile) ── */}
+            <div className="hidden md:block" style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: '5%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '30%' }} />
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '13%' }} />
+                  <col style={{ width: '26%' }} />
+                </colgroup>
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left py-2 px-3 font-medium text-gray-500 whitespace-nowrap">Date</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Description</th>
-                    <th className="text-right py-2 px-3 font-medium text-gray-500 whitespace-nowrap">Amount</th>
-                    <th className="text-center py-2 px-3 font-medium text-gray-500">Type</th>
-                    <th className="text-left py-2 px-3 font-medium text-gray-500">Category</th>
+                  <tr>
+                    {['', 'Date', 'Description', 'Amount', 'Type', 'Category'].map((h) => (
+                      <th key={h} style={{
+                        padding: '8px 12px', fontWeight: 600, fontSize: 11,
+                        textTransform: 'uppercase', letterSpacing: '0.06em',
+                        color: 'var(--text-secondary)', textAlign: 'center',
+                        borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap',
+                      }}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {paginated.map((t) => (
-                    <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="py-3 px-3 text-gray-500 whitespace-nowrap">{fmtDate(t.date)}</td>
-                      <td className="py-3 px-3 text-gray-900 max-w-xs truncate">{t.description}</td>
-                      <td className={`py-3 px-3 text-right font-semibold whitespace-nowrap ${
-                        t.type === 'income' ? 'text-green-600' : 'text-red-500'
-                      }`}>
+                <tbody>
+                  {paginated.map((t, i) => {
+                    const catName = ALL_CATEGORIES.find(c => c.id === t.category_id)?.name || t.category?.name;
+                    const cfg     = catName ? CATEGORY_ICONS[catName] : null;
+                    const CatIcon = cfg?.icon;
+                    return (
+                    <tr key={t.id} style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                      <td style={{ padding: '10px 8px', textAlign: 'center' }}>
+                        <div style={{
+                          width: 32, height: 32, borderRadius: 9, margin: '0 auto',
+                          background: cfg ? cfg.bg : 'var(--bg-tertiary)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          {CatIcon
+                            ? <CatIcon size={14} strokeWidth={1.75} color={cfg.color} />
+                            : <Wallet size={14} strokeWidth={1.75} color="var(--text-secondary)" />}
+                        </div>
+                      </td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', textAlign: 'center', whiteSpace: 'nowrap' }}>{fmtDate(t.date)}</td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>{t.description}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, whiteSpace: 'nowrap', color: t.type === 'income' ? 'var(--green)' : 'var(--red)' }}>
                         {t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
                       </td>
-                      <td className="py-3 px-3 text-center">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                          t.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
-                        }`}>
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        <span className={`tag tag-${t.type === 'income' ? 'green' : 'red'}`}>
                           {t.type === 'income' ? 'Income' : 'Expense'}
                         </span>
                       </td>
-                      <td className="py-3 px-3">
-                        <select
-                          value={t.category_id || ''}
+                      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                        <select value={t.category_id || ''}
                           onChange={(e) => handleCategoryChange(t.id, e.target.value)}
-                          className="text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[150px]"
-                        >
+                          className="input-field" style={{ padding: '4px 8px', fontSize: 12, width: '100%' }}>
                           <option value="">— None —</option>
-                          {ALL_CATEGORIES.map((c) => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                          ))}
+                          {ALL_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                <p className="text-sm text-gray-500">
-                  {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, transactions.length)} of {transactions.length}
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setPage((p) => p - 1)}
-                    disabled={page === 1}
-                    className="p-1.5 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)',
+              }}>
+                <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                  {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
+                </span>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setPage(p => p - 1)} disabled={page === 1}
+                    style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: 'pointer', opacity: page === 1 ? 0.4 : 1 }}>
+                    <ChevronLeft size={15} color="var(--text-secondary)" />
                   </button>
-                  <button
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={page === totalPages}
-                    className="p-1.5 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50"
-                  >
-                    <ChevronRight className="w-4 h-4" />
+                  <button onClick={() => setPage(p => p + 1)} disabled={page === totalPages}
+                    style={{ padding: '6px 8px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-secondary)', cursor: 'pointer', opacity: page === totalPages ? 0.4 : 1 }}>
+                    <ChevronRight size={15} color="var(--text-secondary)" />
                   </button>
                 </div>
               </div>
@@ -303,6 +459,8 @@ export default function TransactionsPage() {
           </>
         )}
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
     </div>
   );
 }

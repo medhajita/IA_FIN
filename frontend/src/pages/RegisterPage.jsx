@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { TrendingUp, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../services/api';
 
 export default function RegisterPage() {
@@ -18,24 +18,14 @@ export default function RegisterPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     const { name, email, password, confirm } = form;
-
-    if (!name || !email || !password || !confirm) {
-      return setError('All fields are required.');
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return setError('Please enter a valid email address.');
-    }
-    if (password !== confirm) {
-      return setError('Passwords do not match.');
-    }
-    if (password.length < 6) {
-      return setError('Password must be at least 6 characters.');
-    }
-
+    if (!name || !email || !password || !confirm) return setError('All fields are required.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError('Please enter a valid email address.');
+    if (password !== confirm) return setError('Passwords do not match.');
+    if (password.length < 6) return setError('Password must be at least 6 characters.');
     setIsLoading(true);
     try {
       await api.post('/auth/register', { name, email, password });
-      setSuccess('Account created! Redirecting to login…');
+      setSuccess('Account created! Redirecting…');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
@@ -45,112 +35,86 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-xl mb-4">
-            <UserPlus className="w-6 h-6 text-white" />
+    <div style={{
+      minHeight: '100vh', background: 'var(--bg-secondary)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+    }}>
+      <div style={{ width: '100%', maxWidth: 400 }}>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 16, background: 'var(--purple)',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+          }}>
+            <User size={26} color="#fff" strokeWidth={1.75} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-          <p className="text-gray-500 mt-1 text-sm">AI Financial Coach — track your finances smarter</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: '0 0 6px' }}>
+            Create your account
+          </h1>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
+            FinancIA — track your finances smarter
+          </p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+        <div className="card" style={{ padding: 28 }}>
           {error && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-6 text-sm">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'var(--red-bg)', color: 'var(--red-text)',
+              borderRadius: 'var(--radius-sm)', padding: '10px 14px', marginBottom: 20, fontSize: 13,
+            }}>
+              <AlertCircle size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
               {error}
             </div>
           )}
           {success && (
-            <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 mb-6 text-sm">
-              <CheckCircle className="w-4 h-4 shrink-0" />
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: 'var(--green-bg)', color: 'var(--green-text)',
+              borderRadius: 'var(--radius-sm)', padding: '10px 14px', marginBottom: 20, fontSize: 13,
+            }}>
+              <CheckCircle2 size={15} strokeWidth={2} style={{ flexShrink: 0 }} />
               {success}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="Alice Martin"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {[
+              { label: 'Full name', name: 'name', type: 'text', icon: User, placeholder: 'Alice Martin' },
+              { label: 'Email', name: 'email', type: 'email', icon: Mail, placeholder: 'alice@example.com' },
+              { label: 'Password', name: 'password', type: 'password', icon: Lock, placeholder: 'Min. 6 characters' },
+              { label: 'Confirm password', name: 'confirm', type: 'password', icon: Lock, placeholder: 'Repeat password' },
+            ].map(({ label, name, type, icon: Icon, placeholder }) => (
+              <div key={name}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                  {label}
+                </label>
+                <div className="input-icon-wrap">
+                  <Icon size={15} className="icon-left" strokeWidth={1.75} />
+                  <input
+                    type={type} name={name} value={form[name]}
+                    onChange={handleChange} placeholder={placeholder}
+                    className="input-field"
+                  />
+                </div>
               </div>
-            </div>
+            ))}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="alice@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="Min. 6 characters"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="password"
-                  name="confirm"
-                  value={form.confirm}
-                  onChange={handleChange}
-                  placeholder="Repeat password"
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                'Create account'
-              )}
+            <button type="submit" disabled={isLoading} className="btn-primary" style={{ width: '100%', marginTop: 4 }}>
+              {isLoading
+                ? <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+                : 'Create account'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)', marginTop: 20, marginBottom: 0 }}>
             Already have an account?{' '}
-            <Link to="/login" className="text-indigo-600 hover:underline font-medium">
+            <Link to="/login" style={{ color: 'var(--blue)', fontWeight: 500, textDecoration: 'none' }}>
               Sign in
             </Link>
           </p>
         </div>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
