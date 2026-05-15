@@ -1,70 +1,99 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Target, PiggyBank, CheckCircle2, AlertCircle } from 'lucide-react';
-import { getGoals, createGoal, updateGoal, deleteGoal } from '../services/goalService';
+import { getGoals, createGoal, deleteGoal, contributeToGoal } from '../services/goalService';
+import { getSummary } from '../services/dashboardService';
 import ProgressBar from '../components/ui/ProgressBar';
 import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
 import IconBox from '../components/ui/IconBox';
 
-const fmt = (n) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
+const fmt = (n) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n ?? 0);
 
 export default function GoalsPage() {
-  const [goals, setGoals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [fundModal, setFundModal] = useState(null);
-  const [fundAmount, setFundAmount] = useState('');
+  const [goals,         setGoals]         = useState([]);
+  const [balance,       setBalance]       = useState(null);
+  const [loading,       setLoading]       = useState(true);
+  const [showForm,      setShowForm]      = useState(false);
+  const [fundModal,     setFundModal]     = useState(null);   // goal id
+  const [fundAmount,    setFundAmount]    = useState('');
+  const [fundError,     setFundError]     = useState('');
+  const [fundLoading,   setFundLoading]   = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [form, setForm] = useState({ title: '', target_amount: '', deadline: '' });
-  const [formError, setFormError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [form,          setForm]          = useState({ title: '', target_amount: '', deadline: '' });
+  const [formError,     setFormError]     = useState('');
+  const [submitting,    setSubmitting]    = useState(false);
 
-  const fetchGoals = async () => {
+  const fetchAll = async () => {
     try {
-      const res = await getGoals();
-      setGoals(res.data.data);
+      const [goalsRes, summaryRes] = await Promise.all([
+        getGoals(),
+        getSummary(),          // no month = all-time balance
+      ]);
+      setGoals(goalsRes.data.data);
+      setBalance(summaryRes.data.data.balance);
     } catch { /* silent */ }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchGoals(); }, []);
+  useEffect(() => { fetchAll(); }, []);
+
+  const openFundModal = (goalId) => {
+    setFundModal(goalId);
+    setFundAmount('');
+    setFundError('');
+  };
 
   const handleCreate = async (e) => {
     e.preventDefault();
     setFormError('');
-    if (!form.title || !form.target_amount || !form.deadline) return setFormError('All fields are required.');
-    if (parseFloat(form.target_amount) <= 0) return setFormError('Amount must be greater than 0.');
-    if (new Date(form.deadline) <= new Date()) return setFormError('Deadline must be in the future.');
+    if (!form.title || !form.target_amount || !form.deadline)
+      return setFormError('All fields are required.');
+    if (parseFloat(form.target_amount) <= 0)
+      return setFormError('Amount must be greater than 0.');
+    if (new Date(form.deadline) <= new Date())
+      return setFormError('Deadline must be in the future.');
     setSubmitting(true);
     try {
       await createGoal(form);
       setForm({ title: '', target_amount: '', deadline: '' });
       setShowForm(false);
-      fetchGoals();
+      fetchAll();
     } catch (err) {
       setFormError(err.response?.data?.error || 'Error creating goal.');
     } finally { setSubmitting(false); }
   };
 
   const handleAddFunds = async () => {
-    if (!fundAmount || parseFloat(fundAmount) <= 0) return;
-    const goal = goals.find((g) => g.id === fundModal);
-    const newAmount = parseFloat(goal.current_amount) + parseFloat(fundAmount);
+    setFundError('');
+    const amount = parseFloat(fundAmount);
+    if (!fundAmount || amount <= 0) return setFundError('Enter a valid amount.');
+
+    // Client-side balance check (server also validates)
+    if (balance !== null && amount > balance) {
+      return setFundError(`Solde insuffisant. Disponible : ${fmt(balance)}`);
+    }
+
+    setFundLoading(true);
     try {
-      await updateGoal(fundModal, { current_amount: newAmount });
+      const res = await contributeToGoal(fundModal, amount);
+      setBalance(res.data.data.newBalance);
       setFundModal(null);
       setFundAmount('');
-      fetchGoals();
-    } catch { /* silent */ }
+      fetchAll();
+    } catch (err) {
+      setFundError(err.response?.data?.error || 'Erreur lors de la contribution.');
+    } finally { setFundLoading(false); }
   };
 
   const handleDelete = async (id) => {
     try {
       await deleteGoal(id);
       setDeleteConfirm(null);
-      fetchGoals();
+      fetchAll();
     } catch { /* silent */ }
   };
+
+  const selectedGoal = goals.find((g) => g.id === fundModal);
 
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
@@ -79,9 +108,16 @@ export default function GoalsPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <IconBox icon={Target} bgColor="var(--purple-bg)" iconColor="var(--purple)" size="md" />
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: 0 }}>
-            Savings Goals
-          </h1>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: 0 }}>
+              Savings Goals
+            </h1>
+            {balance !== null && (
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
+                Solde disponible : <strong style={{ color: balance >= 0 ? 'var(--green)' : 'var(--red)' }}>{fmt(balance)}</strong>
+              </p>
+            )}
+          </div>
         </div>
         <button onClick={() => setShowForm(!showForm)} className="btn-primary">
           <Plus size={15} strokeWidth={2} />
@@ -101,8 +137,7 @@ export default function GoalsPage() {
                 display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px',
                 background: 'var(--red-bg)', color: 'var(--red-text)', borderRadius: 'var(--radius-sm)', fontSize: 13,
               }}>
-                <AlertCircle size={14} strokeWidth={2} />
-                {formError}
+                <AlertCircle size={14} strokeWidth={2} />{formError}
               </div>
             )}
             <div>
@@ -146,7 +181,7 @@ export default function GoalsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {goals.map((goal) => {
             const achieved = parseFloat(goal.progress) >= 100;
-            const overdue = goal.isOverdue && !achieved;
+            const overdue  = goal.isOverdue && !achieved;
             return (
               <div key={goal.id} className="card">
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -155,9 +190,7 @@ export default function GoalsPage() {
                       <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                         {goal.title}
                       </h3>
-                      {overdue && (
-                        <span className="tag tag-red">Overdue</span>
-                      )}
+                      {overdue && <span className="tag tag-red">Overdue</span>}
                       {achieved && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>
                           <CheckCircle2 size={13} strokeWidth={2} /> Achieved!
@@ -165,15 +198,12 @@ export default function GoalsPage() {
                       )}
                     </div>
                     <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>
-                      Deadline: {new Date(goal.deadline).toLocaleDateString('fr-FR')}
+                      Deadline : {new Date(goal.deadline).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
                   <button
                     onClick={() => setDeleteConfirm(goal.id)}
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
-                      borderRadius: 6, color: 'var(--text-tertiary)',
-                    }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, color: 'var(--text-tertiary)' }}
                     onMouseEnter={(e) => e.currentTarget.style.color = 'var(--red)'}
                     onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
                   >
@@ -189,12 +219,11 @@ export default function GoalsPage() {
                   </span>
                   {!achieved && (
                     <button
-                      onClick={() => setFundModal(goal.id)}
+                      onClick={() => openFundModal(goal.id)}
                       style={{
                         fontSize: 13, fontWeight: 500, padding: '5px 12px',
                         background: 'var(--blue-bg)', color: 'var(--blue)',
                         border: 'none', borderRadius: 'var(--radius-tag)', cursor: 'pointer',
-                        transition: 'opacity 0.15s',
                       }}
                     >
                       + Add funds
@@ -207,16 +236,60 @@ export default function GoalsPage() {
         </div>
       )}
 
-      {/* Add funds modal */}
-      <Modal isOpen={!!fundModal} onClose={() => { setFundModal(null); setFundAmount(''); }} title="Add Funds">
+      {/* ── Add funds modal ── */}
+      <Modal isOpen={!!fundModal} onClose={() => setFundModal(null)} title="Add Funds">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>How much did you save?</p>
-          <input type="number" min="0.01" step="0.01" value={fundAmount}
-            onChange={(e) => setFundAmount(e.target.value)}
-            className="input-field" placeholder="0.00" autoFocus />
+
+          {/* Goal info */}
+          {selectedGoal && (
+            <div style={{ padding: '10px 12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)' }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+                {selectedGoal.title}
+              </p>
+              <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>
+                Progression : {fmt(selectedGoal.current_amount)} / {fmt(selectedGoal.target_amount)}
+              </p>
+            </div>
+          )}
+
+          {/* Available balance */}
+          {balance !== null && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '8px 12px', background: balance > 0 ? 'var(--green-bg)' : 'var(--red-bg)',
+              borderRadius: 'var(--radius-sm)',
+            }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: balance > 0 ? 'var(--green-text)' : 'var(--red-text)' }}>
+                Solde disponible
+              </span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: balance > 0 ? 'var(--green)' : 'var(--red)' }}>
+                {fmt(balance)}
+              </span>
+            </div>
+          )}
+
+          {/* Error */}
+          {fundError && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px',
+              background: 'var(--red-bg)', color: 'var(--red-text)', borderRadius: 'var(--radius-sm)', fontSize: 13,
+            }}>
+              <AlertCircle size={14} strokeWidth={2} style={{ flexShrink: 0 }} />
+              {fundError}
+            </div>
+          )}
+
+          <input
+            type="number" min="0.01" step="0.01" value={fundAmount}
+            onChange={(e) => { setFundAmount(e.target.value); setFundError(''); }}
+            className="input-field" placeholder="Montant à épargner (€)" autoFocus
+          />
+
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={handleAddFunds} className="btn-primary" style={{ flex: 1 }}>Confirm</button>
-            <button onClick={() => { setFundModal(null); setFundAmount(''); }} className="btn-ghost" style={{ flex: 1 }}>Cancel</button>
+            <button onClick={handleAddFunds} disabled={fundLoading} className="btn-primary" style={{ flex: 1 }}>
+              {fundLoading ? 'En cours…' : 'Confirmer'}
+            </button>
+            <button onClick={() => setFundModal(null)} className="btn-ghost" style={{ flex: 1 }}>Annuler</button>
           </div>
         </div>
       </Modal>

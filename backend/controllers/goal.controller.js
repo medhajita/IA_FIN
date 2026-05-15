@@ -1,4 +1,4 @@
-const { SavingGoal } = require('../models');
+const { SavingGoal, Transaction } = require('../models');
 
 const createGoal = async (req, res) => {
   try {
@@ -74,4 +74,77 @@ const deleteGoal = async (req, res) => {
   }
 };
 
-module.exports = { createGoal, getGoals, updateGoal, deleteGoal };
+/**
+ * POST /goals/:id/contribute
+ * Adds funds to a goal and creates a matching expense transaction so the
+ * main balance decreases automatically.
+ */
+const contributeToGoal = async (req, res) => {
+  try {
+    const userId  = req.user.id;
+    const amount  = parseFloat(req.body.amount);
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Amount must be greater than 0' });
+    }
+
+    const goal = await SavingGoal.findOne({ where: { id: req.params.id, user_id: userId } });
+    if (!goal) return res.status(404).json({ error: 'Goal not found' });
+
+    if (parseFloat(goal.current_amount) >= parseFloat(goal.target_amount)) {
+      return res.status(400).json({ error: 'Goal is already achieved' });
+    }
+
+    // Compute all-time balance (no month filter)
+    const transactions = await Transaction.findAll({ where: { user_id: userId } });
+    let totalIncome = 0, totalExpenses = 0;
+    for (const t of transactions) {
+      const a = parseFloat(t.amount);
+      if (t.type === 'income') totalIncome += a;
+      else totalExpenses += a;
+    }
+    const balance = parseFloat((totalIncome - totalExpenses).toFixed(2));
+
+    if (amount > balance) {
+      return res.status(400).json({
+        error: `Solde insuffisant. Solde disponible : ${balance.toFixed(2)} €`,
+        availableBalance: balance,
+      });
+    }
+
+    // Create expense transaction — this is what decreases the balance
+    const today = new Date().toISOString().slice(0, 10);
+    await Transaction.create({
+      user_id:     userId,
+      date:        today,
+      description: `Épargne - ${goal.title}`,
+      amount,
+      type:        'expense',
+      category_id: null,
+    });
+
+    // Cap contribution at remaining amount needed
+    const remaining   = parseFloat(goal.target_amount) - parseFloat(goal.current_amount);
+    const contributed = Math.min(amount, remaining);
+    const newAmount   = parseFloat(goal.current_amount) + contributed;
+
+    await goal.update({ current_amount: newAmount });
+
+    const progress = parseFloat(goal.target_amount) > 0
+      ? Math.min(100, (newAmount / parseFloat(goal.target_amount)) * 100)
+      : 0;
+
+    return res.status(200).json({
+      data: {
+        goal:         { ...goal.toJSON(), current_amount: newAmount, progress },
+        newBalance:   parseFloat((balance - amount).toFixed(2)),
+        contributed:  parseFloat(contributed.toFixed(2)),
+      },
+      message: 'Contribution ajoutée avec succès',
+    });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+
+module.exports = { createGoal, getGoals, updateGoal, deleteGoal, contributeToGoal };
