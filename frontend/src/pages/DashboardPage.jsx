@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useI18n } from '../context/I18nContext';
 import {
   PieChart, Pie, Cell, Tooltip as PieTooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as BarTooltip,
@@ -30,10 +31,10 @@ import { getSummary, getByCategory, getMonthlyEvolution } from '../services/dash
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-const REC_CONFIG = {
-  high:   { bg: 'var(--red-bg)',    text: 'var(--red-text)',    label: 'Urgent' },
-  medium: { bg: 'var(--orange-bg)', text: 'var(--orange-text)', label: 'Attention' },
-  low:    { bg: 'var(--blue-bg)',   text: 'var(--blue-text)',   label: 'Info' },
+const REC_STYLES = {
+  high:   { bg: 'var(--red-bg)',    text: 'var(--red-text)'    },
+  medium: { bg: 'var(--orange-bg)', text: 'var(--orange-text)' },
+  low:    { bg: 'var(--blue-bg)',   text: 'var(--blue-text)'   },
 };
 
 function fmt(amount) {
@@ -49,6 +50,7 @@ function currentMonth() {
 const MONTH_NAMES = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const [month, setMonth] = useState(currentMonth());
   const [summary, setSummary] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -82,7 +84,7 @@ export default function DashboardPage() {
       })));
       setRecentTxns(txnRes.data.data.transactions.slice(0, 5));
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to load dashboard');
+      setError(err.response?.data?.error || t('dashboard.errLoad'));
     } finally {
       setLoading(false);
     }
@@ -103,7 +105,7 @@ export default function DashboardPage() {
       fetchAll('2025-10');
       setMonth('2025-10');
     } catch (err) {
-      setError(err.response?.data?.error || 'Demo seed failed');
+      setError(err.response?.data?.error || t('dashboard.errDemo'));
     } finally {
       setSeeding(false);
     }
@@ -165,16 +167,16 @@ export default function DashboardPage() {
       <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
         <div className="card" style={{ textAlign: 'center', maxWidth: 340, width: '100%', padding: 40 }}>
           <IconBox icon={Upload} bgColor="var(--blue-bg)" iconColor="var(--blue)" size="lg" style={{ margin: '0 auto 16px' }} />
-          <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', margin: '16px 0 8px' }}>No data yet</h2>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>Import your first CSV to see your dashboard.</p>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', margin: '16px 0 8px' }}>{t('dashboard.noData')}</h2>
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24 }}>{t('dashboard.noDataSub')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Link to="/transactions" className="btn-primary" style={{ justifyContent: 'center', textDecoration: 'none' }}>
               <Upload size={15} strokeWidth={1.75} />
-              Import CSV
+              {t('dashboard.importCsv')}
             </Link>
             <button onClick={loadDemo} disabled={seeding} className="btn-ghost">
               <PlayCircle size={15} strokeWidth={1.75} />
-              {seeding ? 'Loading…' : 'Load demo data'}
+              {seeding ? t('dashboard.loading') : t('dashboard.loadDemo')}
             </button>
           </div>
         </div>
@@ -200,7 +202,7 @@ export default function DashboardPage() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
-                Dashboard
+                {t('dashboard.title')}
               </h1>
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -209,11 +211,11 @@ export default function DashboardPage() {
                 borderRadius: 'var(--radius-tag)',
               }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-                Live
+                {t('dashboard.live')}
               </span>
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '3px 0 0' }}>
-              Your financial overview at a glance
+              {t('dashboard.subtitle')}
             </p>
           </div>
         </div>
@@ -225,7 +227,7 @@ export default function DashboardPage() {
           padding: '8px 16px', background: 'var(--bg-primary)',
           boxShadow: 'var(--card-shadow)',
         }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>Period</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{t('dashboard.period')}</span>
           <input
             type="month" value={month}
             onChange={(e) => setMonth(e.target.value)}
@@ -240,10 +242,10 @@ export default function DashboardPage() {
 
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
-        <StatCard title="Total Income"    value={fmt(summary.totalIncome)}    subtitle="This month" icon={TrendingUp}   iconBg="var(--green-bg)"  iconColor="var(--green)" />
-        <StatCard title="Total Expenses"  value={fmt(summary.totalExpenses)}  subtitle="This month" icon={TrendingDown} iconBg="var(--red-bg)"    iconColor="var(--red)" />
-        <StatCard title="Balance"         value={fmt(summary.balance)}        subtitle="This month" icon={Wallet}       iconBg="var(--blue-bg)"   iconColor="var(--blue)" />
-        <StatCard title="Savings Rate"    value={`${summary.savingsRate}%`}   subtitle="This month" icon={PiggyBank}    iconBg="var(--purple-bg)" iconColor="var(--purple)" />
+        <StatCard title={t('dashboard.totalIncome')}   value={fmt(summary.totalIncome)}   subtitle={t('dashboard.thisMonth')} icon={TrendingUp}   iconBg="var(--green-bg)"  iconColor="var(--green)" />
+        <StatCard title={t('dashboard.totalExpenses')} value={fmt(summary.totalExpenses)} subtitle={t('dashboard.thisMonth')} icon={TrendingDown} iconBg="var(--red-bg)"    iconColor="var(--red)" />
+        <StatCard title={t('dashboard.balance')}       value={fmt(summary.balance)}       subtitle={t('dashboard.thisMonth')} icon={Wallet}       iconBg="var(--blue-bg)"   iconColor="var(--blue)" />
+        <StatCard title={t('dashboard.savingsRate')}   value={`${summary.savingsRate}%`}  subtitle={t('dashboard.thisMonth')} icon={PiggyBank}    iconBg="var(--purple-bg)" iconColor="var(--purple)" />
       </div>
 
       {/* Charts */}
@@ -251,10 +253,10 @@ export default function DashboardPage() {
 
         {/* Pie */}
         <div className="card">
-          <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px' }}>Expenses by Category</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px' }}>{t('dashboard.expensesByCategory')}</h3>
           {categories.length === 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 180, fontSize: 13, color: 'var(--text-tertiary)' }}>
-              No expenses this month
+              {t('dashboard.noExpenses')}
             </div>
           ) : (
             <>
@@ -284,10 +286,10 @@ export default function DashboardPage() {
 
         {/* Bar */}
         <div className="card">
-          <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px' }}>Monthly Evolution</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px' }}>{t('dashboard.monthlyEvolution')}</h3>
           {evolution.length === 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 220, fontSize: 13, color: 'var(--text-tertiary)' }}>
-              No data for the last 6 months
+              {t('dashboard.noEvolution')}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={240}>
@@ -296,7 +298,7 @@ export default function DashboardPage() {
                 <XAxis dataKey="monthLabel" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} tickFormatter={(v) => `${v}€`} />
                 <BarTooltip
-                  formatter={(value, name) => [fmt(value), name === 'income' ? 'Income' : 'Expenses']}
+                  formatter={(value, name) => [fmt(value), name === 'income' ? t('dashboard.income') : t('dashboard.expenses')]}
                   contentStyle={{ borderRadius: 10, border: '1px solid var(--border)', fontSize: 12, background: 'var(--bg-primary)', color: 'var(--text-primary)', boxShadow: 'none' }}
                   cursor={{ fill: 'transparent' }}
                 />
@@ -320,7 +322,7 @@ export default function DashboardPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <IconBox icon={PiggyBank} bgColor="var(--purple-bg)" iconColor="var(--purple)" size="sm" />
                 <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
-                  Savings Rate Evolution
+                  {t('dashboard.savingsEvolution')}
                 </h3>
               </div>
               <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--purple)', letterSpacing: '-0.5px' }}>
@@ -339,7 +341,7 @@ export default function DashboardPage() {
                 <XAxis dataKey="monthLabel" tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} tickFormatter={(v) => `${v}%`} axisLine={false} tickLine={false} domain={[0, 100]} />
                 <BarTooltip
-                  formatter={(value) => [`${value}%`, 'Savings Rate']}
+                  formatter={(value) => [`${value}%`, t('dashboard.savingsRateLabel')]}
                   contentStyle={{ borderRadius: 10, border: '1px solid var(--border)', fontSize: 12, background: 'var(--bg-primary)', color: 'var(--text-primary)' }}
                 />
                 <Area
@@ -367,11 +369,12 @@ export default function DashboardPage() {
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <IconBox icon={Sparkles} bgColor="var(--purple-bg)" iconColor="var(--purple)" size="sm" />
-            <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Recommandations personnalisées</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{t('dashboard.recommendations')}</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {recommendations.map((rec, i) => {
-              const cfg = REC_CONFIG[rec.priority] || REC_CONFIG.low;
+              const cfg = REC_STYLES[rec.priority] || REC_STYLES.low;
+              const recLabel = rec.priority === 'high' ? t('dashboard.recHigh') : rec.priority === 'medium' ? t('dashboard.recMedium') : t('dashboard.recLow');
               return (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'flex-start', gap: 12,
@@ -387,7 +390,7 @@ export default function DashboardPage() {
                     borderRadius: 'var(--radius-tag)', background: cfg.bg,
                     color: cfg.text, flexShrink: 0, border: `1px solid ${cfg.text}22`,
                   }}>
-                    {cfg.label}
+                    {recLabel}
                   </span>
                 </div>
               );
@@ -399,14 +402,14 @@ export default function DashboardPage() {
       {/* Recent Transactions */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Recent Transactions</h3>
+          <h3 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{t('dashboard.recentTransactions')}</h3>
           <Link to="/transactions" style={{ fontSize: 13, color: 'var(--blue)', fontWeight: 500, textDecoration: 'none' }}>
-            See all
+            {t('dashboard.seeAll')}
           </Link>
         </div>
         {recentTxns.length === 0 ? (
           <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-tertiary)', padding: '24px 0' }}>
-            No transactions yet.
+            {t('dashboard.noTransactions')}
           </p>
         ) : (
           <div>

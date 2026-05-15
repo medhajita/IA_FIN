@@ -113,6 +113,7 @@ const contributeToGoal = async (req, res) => {
     }
 
     // Create expense transaction — this is what decreases the balance
+    // category_id 6 = Logement fallback, but savings goes to 7 = Autre dépense
     const today = new Date().toISOString().slice(0, 10);
     await Transaction.create({
       user_id:     userId,
@@ -120,7 +121,7 @@ const contributeToGoal = async (req, res) => {
       description: `Épargne - ${goal.title}`,
       amount,
       type:        'expense',
-      category_id: null,
+      category_id: 7,   // Autre dépense (avoids potential NOT NULL constraint)
     });
 
     // Cap contribution at remaining amount needed
@@ -143,7 +144,8 @@ const contributeToGoal = async (req, res) => {
       message: 'Contribution ajoutée avec succès',
     });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error('[contributeToGoal]', err.message, err.stack);
+    return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 };
 

@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { TrendingUp, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../services/api';
+import { useI18n } from '../context/I18nContext';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -18,21 +20,28 @@ export default function RegisterPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     const { name, email, password, confirm } = form;
-    if (!name || !email || !password || !confirm) return setError('All fields are required.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError('Please enter a valid email address.');
-    if (password !== confirm) return setError('Passwords do not match.');
-    if (password.length < 6) return setError('Password must be at least 6 characters.');
+    if (!name || !email || !password || !confirm) return setError(t('register.errRequired'));
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError(t('register.errEmail'));
+    if (password !== confirm) return setError(t('register.errMismatch'));
+    if (password.length < 6) return setError(t('register.errLength'));
     setIsLoading(true);
     try {
       await api.post('/auth/register', { name, email, password });
-      setSuccess('Account created! Redirecting…');
+      setSuccess(t('register.success'));
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      setError(err.response?.data?.error || t('register.errFailed'));
     } finally {
       setIsLoading(false);
     }
   }
+
+  const fields = [
+    { label: t('register.fullName'),        name: 'name',     type: 'text',     icon: User, placeholder: t('register.namePlaceholder') },
+    { label: t('register.email'),           name: 'email',    type: 'email',    icon: Mail, placeholder: 'alice@example.com' },
+    { label: t('register.password'),        name: 'password', type: 'password', icon: Lock, placeholder: t('register.passwordPlaceholder') },
+    { label: t('register.confirmPassword'), name: 'confirm',  type: 'password', icon: Lock, placeholder: t('register.confirmPlaceholder') },
+  ];
 
   return (
     <div style={{
@@ -48,10 +57,10 @@ export default function RegisterPage() {
             <User size={26} color="#fff" strokeWidth={1.75} />
           </div>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: '0 0 6px' }}>
-            Create your account
+            {t('register.title')}
           </h1>
           <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
-            FinancIA — track your finances smarter
+            {t('register.subtitle')}
           </p>
         </div>
 
@@ -78,12 +87,7 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {[
-              { label: 'Full name', name: 'name', type: 'text', icon: User, placeholder: 'Alice Martin' },
-              { label: 'Email', name: 'email', type: 'email', icon: Mail, placeholder: 'alice@example.com' },
-              { label: 'Password', name: 'password', type: 'password', icon: Lock, placeholder: 'Min. 6 characters' },
-              { label: 'Confirm password', name: 'confirm', type: 'password', icon: Lock, placeholder: 'Repeat password' },
-            ].map(({ label, name, type, icon: Icon, placeholder }) => (
+            {fields.map(({ label, name, type, icon: Icon, placeholder }) => (
               <div key={name}>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
                   {label}
@@ -102,14 +106,14 @@ export default function RegisterPage() {
             <button type="submit" disabled={isLoading} className="btn-primary" style={{ width: '100%', marginTop: 4 }}>
               {isLoading
                 ? <div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-                : 'Create account'}
+                : t('register.submit')}
             </button>
           </form>
 
           <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-secondary)', marginTop: 20, marginBottom: 0 }}>
-            Already have an account?{' '}
+            {t('register.hasAccount')}{' '}
             <Link to="/login" style={{ color: 'var(--blue)', fontWeight: 500, textDecoration: 'none' }}>
-              Sign in
+              {t('register.signIn')}
             </Link>
           </p>
         </div>

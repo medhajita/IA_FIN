@@ -19,6 +19,7 @@ const CATEGORY_ICONS = {
 };
 import { uploadCSV, updateCategory } from '../services/transactionService';
 import api from '../services/api';
+import { useI18n } from '../context/I18nContext';
 
 const PAGE_SIZE = 15;
 
@@ -38,6 +39,7 @@ function fmtDate(dateStr) {
 }
 
 export default function TransactionsPage() {
+  const { t } = useI18n();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -65,7 +67,7 @@ export default function TransactionsPage() {
       const res = await api.get('/transactions', { params });
       setTransactions(res.data.data.transactions);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to load transactions');
+      setError(err.response?.data?.error || t('transactions.errLoad'));
     } finally {
       setLoading(false);
     }
@@ -85,7 +87,7 @@ export default function TransactionsPage() {
     setDragging(false);
     const dropped = e.dataTransfer.files[0];
     if (dropped?.name.endsWith('.csv')) setFile(dropped);
-    else setUploadAlert({ type: 'error', message: 'Only .csv files are accepted.' });
+    else setUploadAlert({ type: 'error', message: t('transactions.errCsvOnly') });
   }
 
   async function handleUpload() {
@@ -95,11 +97,11 @@ export default function TransactionsPage() {
     try {
       const res = await uploadCSV(file);
       const { imported } = res.data.data;
-      setUploadAlert({ type: 'success', message: `${imported} transactions imported successfully.` });
+      setUploadAlert({ type: 'success', message: t('transactions.imported', { count: imported }) });
       setFile(null);
       fetchTransactions(filters);
     } catch (err) {
-      setUploadAlert({ type: 'error', message: err.response?.data?.error || 'Upload failed.' });
+      setUploadAlert({ type: 'error', message: err.response?.data?.error || t('transactions.errUpload') });
     } finally {
       setUploading(false);
     }
@@ -129,11 +131,12 @@ export default function TransactionsPage() {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
-            Transactions
+            {t('transactions.title')}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>
             {loading ? '…' : `${transactions.length} transaction${transactions.length !== 1 ? 's' : ''}`}
           </p>
+
         </div>
         <button
           onClick={() => setShowImport(v => !v)}
@@ -141,7 +144,7 @@ export default function TransactionsPage() {
           style={{ gap: 7, fontSize: 14, padding: '9px 18px' }}
         >
           <Upload size={15} strokeWidth={1.75} />
-          Import CSV
+          {t('transactions.importCsv')}
         </button>
       </div>
 
@@ -149,9 +152,9 @@ export default function TransactionsPage() {
       {!loading && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-[14px]">
           {[
-            { label: 'INCOME',   value: `+${fmt(totalIncome)}`,   color: 'var(--green)', Icon: TrendingUp,   cls: '' },
-            { label: 'EXPENSES', value: `-${fmt(totalExpenses)}`, color: 'var(--red)',   Icon: TrendingDown, cls: '' },
-            { label: 'NET',      value: `${net >= 0 ? '+' : ''}${fmt(net)}`, color: net >= 0 ? 'var(--green)' : 'var(--red)', Icon: Wallet, cls: 'col-span-2 md:col-span-1 justify-self-center md:justify-self-auto w-[calc(50%-7px)] md:w-auto' },
+            { label: t('transactions.income'),   value: `+${fmt(totalIncome)}`,   color: 'var(--green)', Icon: TrendingUp,   cls: '' },
+            { label: t('transactions.expenses'), value: `-${fmt(totalExpenses)}`, color: 'var(--red)',   Icon: TrendingDown, cls: '' },
+            { label: t('transactions.net'),      value: `${net >= 0 ? '+' : ''}${fmt(net)}`, color: net >= 0 ? 'var(--green)' : 'var(--red)', Icon: Wallet, cls: 'col-span-2 md:col-span-1 justify-self-center md:justify-self-auto w-[calc(50%-7px)] md:w-auto' },
           ].map(({ label, value, color, Icon, cls }) => (
             <div key={label} className={`card ${cls}`}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
@@ -169,10 +172,10 @@ export default function TransactionsPage() {
       {/* ── Import CSV (toggled) ── */}
       {showImport && <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Import CSV</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>{t('transactions.importSection')}</h2>
           <a href="/example.csv" download style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--blue)', textDecoration: 'none', fontWeight: 500 }}>
             <Download size={14} strokeWidth={1.75} />
-            Download sample
+            {t('transactions.downloadSample')}
           </a>
         </div>
 
@@ -194,9 +197,9 @@ export default function TransactionsPage() {
           ) : (
             <>
               <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', margin: '0 0 4px' }}>
-                Drag & drop your CSV here, or click to browse
+                {t('transactions.dropZone')}
               </p>
-              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: 0 }}>Max 5 MB · .csv only</p>
+              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: 0 }}>{t('transactions.dropZoneSub')}</p>
             </>
           )}
           <input ref={fileInputRef} type="file" accept=".csv" style={{ display: 'none' }}
@@ -208,7 +211,7 @@ export default function TransactionsPage() {
             {uploading
               ? <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.4)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
               : <Upload size={14} strokeWidth={1.75} />}
-            {uploading ? 'Importing…' : 'Import'}
+            {uploading ? t('transactions.importing') : t('transactions.import')}
           </button>
         </div>
 
@@ -235,7 +238,7 @@ export default function TransactionsPage() {
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search transactions by description..."
+            placeholder={t('transactions.searchPlaceholder')}
             style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 14, color: 'var(--text-primary)', outline: 'none' }}
           />
           {search && (
@@ -250,7 +253,7 @@ export default function TransactionsPage() {
       <div className="card" style={{ padding: '12px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', padding: 3, gap: 2 }}>
-            {[{ v: '', l: 'All' }, { v: 'income', l: 'Income' }, { v: 'expense', l: 'Expense' }].map(({ v, l }) => {
+            {[{ v: '', l: t('transactions.filterAll') }, { v: 'income', l: t('transactions.filterIncome') }, { v: 'expense', l: t('transactions.filterExpense') }].map(({ v, l }) => {
               const active = filters.type === v;
               return (
                 <button key={v} onClick={() => setFilters(f => ({ ...f, type: v }))} style={{
@@ -267,12 +270,12 @@ export default function TransactionsPage() {
           <select value={filters.category_id}
             onChange={(e) => setFilters(f => ({ ...f, category_id: e.target.value }))}
             className="input-field" style={{ width: 'auto', padding: '6px 12px', fontSize: 13 }}>
-            <option value="">All categories</option>
+            <option value="">{t('transactions.allCategories')}</option>
             {ALL_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>From</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{t('transactions.from')}</span>
             <input type="date"
               value={filters.startDate || dateDisplay.start}
               onChange={(e) => {
@@ -285,7 +288,7 @@ export default function TransactionsPage() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>To</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{t('transactions.to')}</span>
             <input type="date"
               value={filters.endDate || dateDisplay.end}
               onChange={(e) => {
@@ -304,7 +307,7 @@ export default function TransactionsPage() {
               setFilters({ type: '', category_id: '', startDate: '', endDate: '' });
             }}
               className="btn-ghost" style={{ padding: '6px 12px', fontSize: 13 }}>
-              Clear
+              {t('transactions.clear')}
             </button>
           )}
         </div>
@@ -326,19 +329,19 @@ export default function TransactionsPage() {
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
             <Search size={32} strokeWidth={1.5} style={{ margin: '0 auto 12px', display: 'block', opacity: 0.4, color: 'var(--text-tertiary)' }} />
             <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)', margin: '0 0 4px' }}>
-              {search ? 'No matching transactions.' : 'No transactions yet.'}
+              {search ? t('transactions.noResults') : t('transactions.noTransactions')}
             </p>
           </div>
         ) : (
           <>
             {/* ── Mobile card list (hidden on md+) ── */}
             <div className="md:hidden">
-              {paginated.map((t, i) => {
-                const catName = ALL_CATEGORIES.find(c => c.id === t.category_id)?.name || t.category?.name;
+              {paginated.map((txn, i) => {
+                const catName = ALL_CATEGORIES.find(c => c.id === txn.category_id)?.name || txn.category?.name;
                 const cfg     = catName ? CATEGORY_ICONS[catName] : null;
                 const CatIcon = cfg?.icon;
                 return (
-                  <div key={t.id} style={{
+                  <div key={txn.id} style={{
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '12px 0',
                     borderBottom: i < paginated.length - 1 ? '1px solid var(--border)' : 'none',
@@ -354,15 +357,15 @@ export default function TransactionsPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {t.description}
+                        {txn.description}
                       </p>
                       <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
-                        {fmtDate(t.date)}{catName ? ` · ${catName}` : ''}
+                        {fmtDate(txn.date)}{catName ? ` · ${catName}` : ''}
                       </p>
                     </div>
                     <div style={{ flexShrink: 0, textAlign: 'right' }}>
-                      <p style={{ fontSize: 15, fontWeight: 700, color: t.type === 'income' ? 'var(--green)' : 'var(--red)', margin: 0 }}>
-                        {t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
+                      <p style={{ fontSize: 15, fontWeight: 700, color: txn.type === 'income' ? 'var(--green)' : 'var(--red)', margin: 0 }}>
+                        {txn.type === 'income' ? '+' : '-'}{fmt(txn.amount)}
                       </p>
                     </div>
                   </div>
@@ -383,7 +386,7 @@ export default function TransactionsPage() {
                 </colgroup>
                 <thead>
                   <tr>
-                    {['', 'Date', 'Description', 'Amount', 'Type', 'Category'].map((h) => (
+                    {['', t('transactions.colDate'), t('transactions.colDescription'), t('transactions.colAmount'), t('transactions.colType'), t('transactions.colCategory')].map((h) => (
                       <th key={h} style={{
                         padding: '8px 12px', fontWeight: 600, fontSize: 11,
                         textTransform: 'uppercase', letterSpacing: '0.06em',
@@ -394,12 +397,12 @@ export default function TransactionsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {paginated.map((t, i) => {
-                    const catName = ALL_CATEGORIES.find(c => c.id === t.category_id)?.name || t.category?.name;
+                  {paginated.map((txn, i) => {
+                    const catName = ALL_CATEGORIES.find(c => c.id === txn.category_id)?.name || txn.category?.name;
                     const cfg     = catName ? CATEGORY_ICONS[catName] : null;
                     const CatIcon = cfg?.icon;
                     return (
-                    <tr key={t.id} style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
+                    <tr key={txn.id} style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
                       <td style={{ padding: '10px 8px', textAlign: 'center' }}>
                         <div style={{
                           width: 32, height: 32, borderRadius: 9, margin: '0 auto',
@@ -411,21 +414,21 @@ export default function TransactionsPage() {
                             : <Wallet size={14} strokeWidth={1.75} color="var(--text-secondary)" />}
                         </div>
                       </td>
-                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', textAlign: 'center', whiteSpace: 'nowrap' }}>{fmtDate(t.date)}</td>
-                      <td style={{ padding: '10px 12px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>{t.description}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, whiteSpace: 'nowrap', color: t.type === 'income' ? 'var(--green)' : 'var(--red)' }}>
-                        {t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
+                      <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', textAlign: 'center', whiteSpace: 'nowrap' }}>{fmtDate(txn.date)}</td>
+                      <td style={{ padding: '10px 12px', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'center' }}>{txn.description}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'center', fontWeight: 600, whiteSpace: 'nowrap', color: txn.type === 'income' ? 'var(--green)' : 'var(--red)' }}>
+                        {txn.type === 'income' ? '+' : '-'}{fmt(txn.amount)}
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                        <span className={`tag tag-${t.type === 'income' ? 'green' : 'red'}`}>
-                          {t.type === 'income' ? 'Income' : 'Expense'}
+                        <span className={`tag tag-${txn.type === 'income' ? 'green' : 'red'}`}>
+                          {txn.type === 'income' ? t('transactions.tagIncome') : t('transactions.tagExpense')}
                         </span>
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                        <select value={t.category_id || ''}
-                          onChange={(e) => handleCategoryChange(t.id, e.target.value)}
+                        <select value={txn.category_id || ''}
+                          onChange={(e) => handleCategoryChange(txn.id, e.target.value)}
                           className="input-field" style={{ padding: '4px 8px', fontSize: 12, width: '100%' }}>
-                          <option value="">— None —</option>
+                          <option value="">{t('transactions.noneCategory')}</option>
                           {ALL_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                       </td>

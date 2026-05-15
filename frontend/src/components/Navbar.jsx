@@ -6,12 +6,13 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useI18n } from '../context/I18nContext';
 
-const NAV_LINKS = [
-  { to: '/dashboard',    label: 'Dashboard',     icon: LayoutDashboard },
-  { to: '/transactions', label: 'Transactions',   icon: ArrowUpDown },
-  { to: '/goals',        label: 'Goals',          icon: Target },
-  { to: '/assistant',    label: 'Assistant IA',   icon: MessageSquare },
+const NAV_KEYS = [
+  { to: '/dashboard',    tKey: 'nav.dashboard',    icon: LayoutDashboard },
+  { to: '/transactions', tKey: 'nav.transactions',  icon: ArrowUpDown },
+  { to: '/goals',        tKey: 'nav.goals',         icon: Target },
+  { to: '/assistant',    tKey: 'nav.assistant',     icon: MessageSquare },
 ];
 
 function getInitials(name) {
@@ -36,6 +37,7 @@ function Avatar({ name, size = 28, fontSize = 11 }) {
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
+  const { lang, setLang, t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -44,7 +46,6 @@ export default function Navbar() {
   const desktopDropRef = useRef(null);
   const mobileDropRef  = useRef(null);
 
-  // Close dropdowns on outside click
   useEffect(() => {
     function handler(e) {
       if (desktopDropRef.current && !desktopDropRef.current.contains(e.target)) setDesktopDrop(false);
@@ -66,7 +67,15 @@ export default function Navbar() {
     return location.pathname.startsWith(to);
   }
 
-  /* ─────────────────────────────────────────── */
+  const langBtnStyle = (l) => ({
+    fontSize: 12, fontWeight: 700, padding: '3px 7px',
+    borderRadius: 6, border: '1px solid var(--border)',
+    background: lang === l ? 'var(--blue)' : 'transparent',
+    color: lang === l ? '#fff' : 'var(--text-secondary)',
+    cursor: 'pointer', transition: 'all 0.15s',
+    lineHeight: 1,
+  });
+
   return (
     <>
       {/* ══ DESKTOP TOP NAV (md+) ═════════════════ */}
@@ -83,12 +92,12 @@ export default function Navbar() {
             </span>
           </div>
 
-          {/* Center — Nav links (absolutely centered) */}
+          {/* Center — Nav links */}
           <div style={{
             position: 'absolute', left: '50%', transform: 'translateX(-50%)',
             display: 'flex', alignItems: 'center', gap: 2,
           }}>
-            {NAV_LINKS.map(({ to, label, icon: Icon }) => {
+            {NAV_KEYS.map(({ to, tKey, icon: Icon }) => {
               const active = isActive(to);
               return (
                 <NavLink key={to} to={to} style={{
@@ -97,18 +106,23 @@ export default function Navbar() {
                   fontSize: 13, fontWeight: 500, textDecoration: 'none',
                   color: active ? 'var(--blue)' : 'var(--text-secondary)',
                   background: active ? 'var(--blue-bg)' : 'transparent',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s', whiteSpace: 'nowrap',
                 }}>
                   <Icon size={14} strokeWidth={1.75} />
-                  {label}
+                  {t(tKey)}
                 </NavLink>
               );
             })}
           </div>
 
-          {/* Right — Theme toggle + Avatar (initials only) */}
+          {/* Right — Lang toggle + Theme toggle + Avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0 }}>
+
+            {/* Lang switcher */}
+            <div style={{ display: 'flex', gap: 3 }}>
+              <button onClick={() => setLang('fr')} style={langBtnStyle('fr')}>FR</button>
+              <button onClick={() => setLang('en')} style={langBtnStyle('en')}>EN</button>
+            </div>
 
             {/* Theme toggle */}
             <button onClick={toggle} style={{
@@ -124,16 +138,11 @@ export default function Navbar() {
             <div ref={desktopDropRef} style={{ position: 'relative' }}>
               <button
                 onClick={() => setDesktopDrop((v) => !v)}
-                style={{
-                  display: 'flex', alignItems: 'center',
-                  background: 'none', border: 'none', padding: 0,
-                  cursor: 'pointer',
-                }}
+                style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
               >
                 <Avatar name={user?.name} size={32} fontSize={12} />
               </button>
 
-              {/* Dropdown */}
               {desktopDrop && (
                 <div style={{
                   position: 'absolute', top: 'calc(100% + 8px)', right: 0,
@@ -141,7 +150,6 @@ export default function Navbar() {
                   borderRadius: 'var(--radius-card)', minWidth: 220,
                   boxShadow: '0 8px 32px rgba(0,0,0,0.14)', zIndex: 200, overflow: 'hidden',
                 }}>
-                  {/* User info */}
                   <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <Avatar name={user?.name} size={40} fontSize={15} />
@@ -155,7 +163,6 @@ export default function Navbar() {
                       </div>
                     </div>
                   </div>
-                  {/* Sign out */}
                   <div style={{ padding: 4 }}>
                     <button
                       onClick={handleLogout}
@@ -170,7 +177,7 @@ export default function Navbar() {
                       onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
                     >
                       <LogOut size={14} strokeWidth={1.75} />
-                      Sign out
+                      {t('nav.signOut')}
                     </button>
                   </div>
                 </div>
@@ -183,7 +190,6 @@ export default function Navbar() {
       {/* ══ MOBILE BOTTOM TAB BAR (<md) ═══════════ */}
       <div className="md:hidden" style={{ position: 'fixed', bottom: 10, left: 10, right: 10, zIndex: 100 }}>
 
-        {/* Profile popover (appears above the tab bar) */}
         {mobileDrop && (
           <div
             ref={mobileDropRef}
@@ -194,7 +200,6 @@ export default function Navbar() {
               boxShadow: '0 -4px 24px rgba(0,0,0,0.16)', zIndex: 110, overflow: 'hidden',
             }}
           >
-            {/* User info */}
             <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <Avatar name={user?.name} size={38} fontSize={14} />
@@ -207,6 +212,11 @@ export default function Navbar() {
                   </p>
                 </div>
               </div>
+            </div>
+            {/* Lang switcher in mobile dropdown */}
+            <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 6 }}>
+              <button onClick={() => setLang('fr')} style={langBtnStyle('fr')}>FR</button>
+              <button onClick={() => setLang('en')} style={langBtnStyle('en')}>EN</button>
             </div>
             <div style={{ padding: 4 }}>
               <button
@@ -222,13 +232,12 @@ export default function Navbar() {
                 onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
               >
                 <LogOut size={14} strokeWidth={1.75} />
-                Sign out
+                {t('nav.signOut')}
               </button>
             </div>
           </div>
         )}
 
-        {/* Tab bar */}
         <div style={{
           background: 'var(--bg-primary)',
           borderRadius: 22,
@@ -238,9 +247,11 @@ export default function Navbar() {
           justifyContent: 'space-around',
           padding: '6px 4px 8px',
         }}>
-          {/* Nav items */}
-          {NAV_LINKS.map(({ to, label, icon: Icon }) => {
+          {NAV_KEYS.map(({ to, tKey, icon: Icon }) => {
             const active = isActive(to);
+            const label  = t(tKey);
+            // Shorten label for mobile tab bar
+            const short  = label.length > 9 ? label.slice(0, 8) + '…' : label;
             return (
               <NavLink key={to} to={to} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
@@ -254,13 +265,12 @@ export default function Navbar() {
                   color: active ? 'var(--blue)' : 'var(--text-secondary)',
                   letterSpacing: '0.01em', lineHeight: 1,
                 }}>
-                  {label === 'Assistant IA' ? 'Assistant' : label}
+                  {short}
                 </span>
               </NavLink>
             );
           })}
 
-          {/* Profile tab */}
           <button
             onClick={() => setMobileDrop((v) => !v)}
             style={{
@@ -283,7 +293,7 @@ export default function Navbar() {
               color: mobileDrop ? 'var(--blue)' : 'var(--text-secondary)',
               letterSpacing: '0.01em', lineHeight: 1,
             }}>
-              Profile
+              {t('nav.profile')}
             </span>
           </button>
         </div>

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { I18nProvider } from './context/I18nContext';
 import PrivateRoute from './components/PrivateRoute';
 import MainLayout from './layouts/MainLayout';
 import LoginPage from './pages/LoginPage';
@@ -12,6 +13,7 @@ import AssistantPage from './pages/AssistantPage';
 
 export default function App() {
   return (
+    <I18nProvider>
     <ThemeProvider>
       <BrowserRouter>
         <AuthProvider>
@@ -31,5 +33,6 @@ export default function App() {
         </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
+    </I18nProvider>
   );
 }

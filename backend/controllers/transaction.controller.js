@@ -1,38 +1,20 @@
 const fs = require('fs');
 const path = require('path');
 const { Op } = require('sequelize');
-const axios = require('axios');
 const { Transaction, Category } = require('../models');
 const { parseCSV } = require('../utils/csvParser');
 const { categorizeByRules } = require('../utils/categorizer');
+const { classifyWithAI } = require('../utils/aiCategorizer');
 
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:5001';
-
-const CATEGORY_NAME_TO_ID = {
-  'alimentation': 1,
-  'transport': 2,
-  'abonnements': 3,
-  'loisirs': 4,
-  'santé': 5,
-  'logement': 6,
-  'salaire': 8,
-  'autre revenu': 9,
-};
-
-async function getCategoryIdFromML(description) {
-  try {
-    const { data } = await axios.post(`${ML_SERVICE_URL}/predict`, { description }, { timeout: 3000 });
-    const name = (data.category || '').toLowerCase();
-    return CATEGORY_NAME_TO_ID[name] || null;
-  } catch {
-    return null;
-  }
-}
-
-async function resolveCategory(description) {
+/**
+ * Two-stage categorisation:
+ * 1. Fast keyword rules (no API call)
+ * 2. DeepSeek AI via HuggingFace (fallback to Autre dépense/revenu on failure)
+ */
+async function resolveCategory(description, amount, type) {
   const ruleId = categorizeByRules(description);
   if (ruleId !== null) return ruleId;
-  return getCategoryIdFromML(description);
+  return classifyWithAI(description, amount, type);
 }
 
 async function uploadCSV(req, res) {
@@ -49,7 +31,7 @@ async function uploadCSV(req, res) {
 
     for (const row of rows) {
       try {
-        const category_id = await resolveCategory(row.description);
+        const category_id = await resolveCategory(row.description, row.amount, row.type);
         await Transaction.create({
           user_id: req.user.id,
           date: row.date,
@@ -126,7 +108,7 @@ async function recategorize(req, res) {
 
     let updated = 0;
     for (const txn of uncategorized) {
-      const category_id = await resolveCategory(txn.description);
+      const category_id = await resolveCategory(txn.description, txn.amount, txn.type);
       if (category_id) {
         await txn.update({ category_id });
         updated++;

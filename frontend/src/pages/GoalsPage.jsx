@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, Target, PiggyBank, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getGoals, createGoal, deleteGoal, contributeToGoal } from '../services/goalService';
 import { getSummary } from '../services/dashboardService';
+import { useI18n } from '../context/I18nContext';
 import ProgressBar from '../components/ui/ProgressBar';
 import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
@@ -10,6 +11,7 @@ import IconBox from '../components/ui/IconBox';
 const fmt = (n) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n ?? 0);
 
 export default function GoalsPage() {
+  const { t } = useI18n();
   const [goals,         setGoals]         = useState([]);
   const [balance,       setBalance]       = useState(null);
   const [loading,       setLoading]       = useState(true);
@@ -47,11 +49,11 @@ export default function GoalsPage() {
     e.preventDefault();
     setFormError('');
     if (!form.title || !form.target_amount || !form.deadline)
-      return setFormError('All fields are required.');
+      return setFormError(t('goals.errRequired'));
     if (parseFloat(form.target_amount) <= 0)
-      return setFormError('Amount must be greater than 0.');
+      return setFormError(t('goals.errAmount'));
     if (new Date(form.deadline) <= new Date())
-      return setFormError('Deadline must be in the future.');
+      return setFormError(t('goals.errDeadline'));
     setSubmitting(true);
     try {
       await createGoal(form);
@@ -59,18 +61,18 @@ export default function GoalsPage() {
       setShowForm(false);
       fetchAll();
     } catch (err) {
-      setFormError(err.response?.data?.error || 'Error creating goal.');
+      setFormError(err.response?.data?.error || t('goals.errCreate'));
     } finally { setSubmitting(false); }
   };
 
   const handleAddFunds = async () => {
     setFundError('');
     const amount = parseFloat(fundAmount);
-    if (!fundAmount || amount <= 0) return setFundError('Enter a valid amount.');
+    if (!fundAmount || amount <= 0) return setFundError(t('goals.errAmount'));
 
     // Client-side balance check (server also validates)
     if (balance !== null && amount > balance) {
-      return setFundError(`Solde insuffisant. Disponible : ${fmt(balance)}`);
+      return setFundError(t('goals.errInsufficient', { balance: fmt(balance) }));
     }
 
     setFundLoading(true);
@@ -81,7 +83,9 @@ export default function GoalsPage() {
       setFundAmount('');
       fetchAll();
     } catch (err) {
-      setFundError(err.response?.data?.error || 'Erreur lors de la contribution.');
+      const msg = err.response?.data?.error;
+      setFundError(msg || t('goals.errFund'));
+      console.error('[contribute]', err.response?.status, msg, err.message);
     } finally { setFundLoading(false); }
   };
 
@@ -110,18 +114,18 @@ export default function GoalsPage() {
           <IconBox icon={Target} bgColor="var(--purple-bg)" iconColor="var(--purple)" size="md" />
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: 0 }}>
-              Savings Goals
+              {t('goals.title')}
             </h1>
             {balance !== null && (
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
-                Solde disponible : <strong style={{ color: balance >= 0 ? 'var(--green)' : 'var(--red)' }}>{fmt(balance)}</strong>
+                {t('goals.availableBalance')} <strong style={{ color: balance >= 0 ? 'var(--green)' : 'var(--red)' }}>{fmt(balance)}</strong>
               </p>
             )}
           </div>
         </div>
         <button onClick={() => setShowForm(!showForm)} className="btn-primary">
           <Plus size={15} strokeWidth={2} />
-          New Goal
+          {t('goals.newGoal')}
         </button>
       </div>
 
@@ -129,7 +133,7 @@ export default function GoalsPage() {
       {showForm && (
         <div className="card" style={{ marginBottom: 16 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 16px' }}>
-            Create a New Goal
+            {t('goals.createTitle')}
           </h2>
           <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {formError && (
@@ -141,29 +145,29 @@ export default function GoalsPage() {
               </div>
             )}
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>Title</label>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>{t('goals.titleLabel')}</label>
               <input type="text" value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="input-field" placeholder="e.g. Vacances été" />
+                className="input-field" placeholder={t('goals.titlePlaceholder')} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>Target Amount (€)</label>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>{t('goals.targetLabel')}</label>
               <input type="number" min="1" step="0.01" value={form.target_amount}
                 onChange={(e) => setForm({ ...form, target_amount: e.target.value })}
                 className="input-field" placeholder="500" />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>Deadline</label>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>{t('goals.deadlineLabel')}</label>
               <input type="date" value={form.deadline}
                 onChange={(e) => setForm({ ...form, deadline: e.target.value })}
                 className="input-field" />
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button type="submit" disabled={submitting} className="btn-primary">
-                {submitting ? 'Creating…' : 'Create Goal'}
+                {submitting ? t('goals.creating') : t('goals.create')}
               </button>
               <button type="button" onClick={() => { setShowForm(false); setFormError(''); }} className="btn-ghost">
-                Cancel
+                {t('goals.cancel')}
               </button>
             </div>
           </form>
@@ -174,8 +178,8 @@ export default function GoalsPage() {
       {goals.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '72px 0', color: 'var(--text-tertiary)' }}>
           <PiggyBank size={48} strokeWidth={1.25} style={{ margin: '0 auto 16px', display: 'block', opacity: 0.4 }} />
-          <p style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-secondary)', margin: '0 0 4px' }}>No savings goals yet.</p>
-          <p style={{ fontSize: 13, margin: 0 }}>Create your first goal to start saving!</p>
+          <p style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-secondary)', margin: '0 0 4px' }}>{t('goals.noGoals')}</p>
+          <p style={{ fontSize: 13, margin: 0 }}>{t('goals.noGoalsSub')}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -190,15 +194,15 @@ export default function GoalsPage() {
                       <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
                         {goal.title}
                       </h3>
-                      {overdue && <span className="tag tag-red">Overdue</span>}
+                      {overdue && <span className="tag tag-red">{t('goals.overdue')}</span>}
                       {achieved && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--green)', fontWeight: 600 }}>
-                          <CheckCircle2 size={13} strokeWidth={2} /> Achieved!
+                          <CheckCircle2 size={13} strokeWidth={2} /> {t('goals.achieved')}
                         </span>
                       )}
                     </div>
                     <p style={{ fontSize: 12, color: 'var(--text-tertiary)', margin: '4px 0 0' }}>
-                      Deadline : {new Date(goal.deadline).toLocaleDateString('fr-FR')}
+                      {t('goals.deadline')} {new Date(goal.deadline).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
                   <button
@@ -226,7 +230,7 @@ export default function GoalsPage() {
                         border: 'none', borderRadius: 'var(--radius-tag)', cursor: 'pointer',
                       }}
                     >
-                      + Add funds
+                      {t('goals.addFunds')}
                     </button>
                   )}
                 </div>
@@ -237,7 +241,7 @@ export default function GoalsPage() {
       )}
 
       {/* ── Add funds modal ── */}
-      <Modal isOpen={!!fundModal} onClose={() => setFundModal(null)} title="Add Funds">
+      <Modal isOpen={!!fundModal} onClose={() => setFundModal(null)} title={t('goals.fundModalTitle')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Goal info */}
@@ -247,7 +251,7 @@ export default function GoalsPage() {
                 {selectedGoal.title}
               </p>
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: 0 }}>
-                Progression : {fmt(selectedGoal.current_amount)} / {fmt(selectedGoal.target_amount)}
+                {t('goals.progression')} {fmt(selectedGoal.current_amount)} / {fmt(selectedGoal.target_amount)}
               </p>
             </div>
           )}
@@ -260,7 +264,7 @@ export default function GoalsPage() {
               borderRadius: 'var(--radius-sm)',
             }}>
               <span style={{ fontSize: 12, fontWeight: 500, color: balance > 0 ? 'var(--green-text)' : 'var(--red-text)' }}>
-                Solde disponible
+                {t('goals.balanceLabel')}
               </span>
               <span style={{ fontSize: 14, fontWeight: 700, color: balance > 0 ? 'var(--green)' : 'var(--red)' }}>
                 {fmt(balance)}
@@ -282,27 +286,27 @@ export default function GoalsPage() {
           <input
             type="number" min="0.01" step="0.01" value={fundAmount}
             onChange={(e) => { setFundAmount(e.target.value); setFundError(''); }}
-            className="input-field" placeholder="Montant à épargner (€)" autoFocus
+            className="input-field" placeholder={t('goals.amountPlaceholder')} autoFocus
           />
 
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={handleAddFunds} disabled={fundLoading} className="btn-primary" style={{ flex: 1 }}>
-              {fundLoading ? 'En cours…' : 'Confirmer'}
+              {fundLoading ? t('goals.confirming') : t('goals.confirm')}
             </button>
-            <button onClick={() => setFundModal(null)} className="btn-ghost" style={{ flex: 1 }}>Annuler</button>
+            <button onClick={() => setFundModal(null)} className="btn-ghost" style={{ flex: 1 }}>{t('goals.annuler')}</button>
           </div>
         </div>
       </Modal>
 
       {/* Delete confirm modal */}
-      <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title="Delete Goal">
+      <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} title={t('goals.deleteTitle')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: 0 }}>
-            Are you sure you want to delete this goal? This action cannot be undone.
+            {t('goals.deleteConfirm')}
           </p>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={() => handleDelete(deleteConfirm)} className="btn-danger" style={{ flex: 1 }}>Delete</button>
-            <button onClick={() => setDeleteConfirm(null)} className="btn-ghost" style={{ flex: 1 }}>Cancel</button>
+            <button onClick={() => handleDelete(deleteConfirm)} className="btn-danger" style={{ flex: 1 }}>{t('goals.delete')}</button>
+            <button onClick={() => setDeleteConfirm(null)} className="btn-ghost" style={{ flex: 1 }}>{t('goals.cancel')}</button>
           </div>
         </div>
       </Modal>

@@ -3,19 +3,7 @@ import { Send, Bot, Sparkles } from 'lucide-react';
 import { askQuestion } from '../services/chatbotService';
 import IconBox from '../components/ui/IconBox';
 import { useAuth } from '../context/AuthContext';
-
-const SUGGESTIONS = [
-  "Combien j'ai dépensé ?",
-  'Quel est mon solde ?',
-  'Ma catégorie la plus dépensière ?',
-  "Mon taux d'épargne ?",
-];
-
-const WELCOME = {
-  role: 'bot',
-  text: 'Bonjour ! Je suis votre assistant financier IA. Posez-moi une question sur vos dépenses.',
-  timestamp: new Date().toISOString(),
-};
+import { useI18n } from '../context/I18nContext';
 
 function getInitials(name) {
   if (!name) return '?';
@@ -24,7 +12,13 @@ function getInitials(name) {
 
 export default function AssistantPage() {
   const { user } = useAuth();
-  const [messages, setMessages] = useState([WELCOME]);
+  const { t } = useI18n();
+  const [messages, setMessages] = useState(() => [{
+    role: 'bot',
+    text: null,
+    isWelcome: true,
+    timestamp: new Date().toISOString(),
+  }]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
@@ -41,7 +35,7 @@ export default function AssistantPage() {
       const res = await askQuestion(q);
       setMessages((prev) => [...prev, { role: 'bot', text: res.data.answer, timestamp: res.data.timestamp }]);
     } catch {
-      setMessages((prev) => [...prev, { role: 'bot', text: "Désolé, une erreur s'est produite. Réessayez.", timestamp: new Date().toISOString() }]);
+      setMessages((prev) => [...prev, { role: 'bot', text: t('assistant.error'), timestamp: new Date().toISOString() }]);
     } finally { setLoading(false); }
   };
 
@@ -90,11 +84,11 @@ export default function AssistantPage() {
           </div>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
-              Financial Assistant
+              {t('assistant.title')}
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--green-text)' }}>Online</span>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--green-text)' }}>{t('assistant.online')}</span>
             </div>
           </div>
         </div>
@@ -143,7 +137,7 @@ export default function AssistantPage() {
                 alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
               }}>
                 <div className={msg.role === 'bot' ? 'bubble-bot' : 'bubble-user'}>
-                  {msg.text}
+                  {msg.isWelcome ? t('assistant.welcome') : msg.text}
                 </div>
                 <span style={{ fontSize: 11, color: 'var(--text-tertiary)', paddingLeft: 2, paddingRight: 2 }}>
                   {fmtTime(msg.timestamp)}
@@ -176,7 +170,7 @@ export default function AssistantPage() {
         {/* Suggestions — shown only before first reply */}
         {messages.length === 1 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flexShrink: 0 }}>
-            {SUGGESTIONS.map((s) => (
+            {[t('assistant.s0'), t('assistant.s1'), t('assistant.s2'), t('assistant.s3')].map((s) => (
               <button key={s} onClick={() => send(s)} style={{
                 fontSize: 12, fontWeight: 500, padding: '6px 12px',
                 background: 'var(--purple-bg)', color: 'var(--purple-text)',
@@ -202,7 +196,7 @@ export default function AssistantPage() {
             <input
               type="text" value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Posez votre question…"
+              placeholder={t('assistant.placeholder')}
               disabled={loading}
               className="chat-input"
               style={{
