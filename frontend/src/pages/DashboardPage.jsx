@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../context/I18nContext';
 import {
@@ -7,7 +7,7 @@ import {
   AreaChart, Area, ResponsiveContainer,
 } from 'recharts';
 import {
-  Upload, PlayCircle, TrendingUp, TrendingDown,
+  Upload, PlayCircle, TrendingUp, TrendingDown, CalendarDays,
   Wallet, PiggyBank, Sparkles, AlertCircle, Activity,
   ShoppingBasket, Car, RefreshCw, Ticket, HeartPulse, Home,
   MinusCircle, Banknote, ArrowUpCircle,
@@ -52,6 +52,7 @@ const MONTH_NAMES = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep',
 export default function DashboardPage() {
   const { t } = useI18n();
   const [month, setMonth] = useState(currentMonth());
+  const monthInputRef = useRef(null);
   const [summary, setSummary] = useState(null);
   const [categories, setCategories] = useState([]);
   const [evolution, setEvolution] = useState([]);
@@ -185,34 +186,26 @@ export default function DashboardPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="dashboard-page-shell" style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+      <div className="dashboard-mobile-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         {/* Left: icon + title + live badge + subtitle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{
-            width: 46, height: 46, borderRadius: 13, flexShrink: 0,
-            background: 'linear-gradient(135deg, var(--blue) 0%, #7EB0FF 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 16px rgba(74,124,246,0.30)',
-          }}>
+        <div className="dashboard-header-main" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div className="dashboard-header-icon" style={{
+              width: 46, height: 46, borderRadius: 13, flexShrink: 0,
+              background: 'linear-gradient(135deg, var(--blue) 0%, #7EB0FF 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(74,124,246,0.30)',
+            }}>
             <Activity size={22} color="#fff" strokeWidth={1.75} />
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+
+          <div className="dashboard-title-copy">
+            <div className="dashboard-title-row" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
                 {t('dashboard.title')}
               </h1>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5,
-                background: 'var(--green-bg)', color: 'var(--green-text)',
-                fontSize: 12, fontWeight: 600, padding: '3px 9px',
-                borderRadius: 'var(--radius-tag)',
-              }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-                {t('dashboard.live')}
-              </span>
             </div>
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '3px 0 0' }}>
               {t('dashboard.subtitle')}
@@ -221,27 +214,37 @@ export default function DashboardPage() {
         </div>
 
         {/* Right: period selector */}
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: 10,
-          border: '1px solid var(--border)', borderRadius: 'var(--radius-tag)',
-          padding: '8px 16px', background: 'var(--bg-primary)',
-          boxShadow: 'var(--card-shadow)',
-        }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>{t('dashboard.period')}</span>
+        <div
+          className="dashboard-period-selector"
+          onClick={() => monthInputRef.current?.showPicker?.() ?? monthInputRef.current?.click()}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            background: 'var(--blue-bg)', color: 'var(--blue-text)',
+            border: 'none', borderRadius: 'var(--radius-tag)',
+            padding: '7px 14px', whiteSpace: 'nowrap',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.10)', cursor: 'pointer',
+          }}
+        >
+          <CalendarDays size={14} strokeWidth={2} style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 12, fontWeight: 600 }}>{t('dashboard.period')}</span>
+          <div style={{ width: 1, height: 12, background: 'var(--blue)', opacity: 0.3, flexShrink: 0 }} />
           <input
+            ref={monthInputRef}
             type="month" value={month}
             onChange={(e) => setMonth(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
             style={{
-              border: 'none', background: 'transparent', fontSize: 13,
-              fontWeight: 600, color: 'var(--text-primary)', outline: 'none',
-              fontFamily: 'inherit', cursor: 'pointer',
+              border: 'none', background: 'transparent', fontSize: 12,
+              fontWeight: 700, color: 'var(--blue-text)', outline: 'none',
+              fontFamily: 'inherit', cursor: 'pointer', minWidth: 0,
+              appearance: 'none', WebkitAppearance: 'none',
             }}
           />
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+      <div className="dashboard-kpi-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
         <StatCard title={t('dashboard.totalIncome')}   value={fmt(summary.totalIncome)}   subtitle={t('dashboard.thisMonth')} icon={TrendingUp}   iconBg="var(--green-bg)"  iconColor="var(--green)" />
         <StatCard title={t('dashboard.totalExpenses')} value={fmt(summary.totalExpenses)} subtitle={t('dashboard.thisMonth')} icon={TrendingDown} iconBg="var(--red-bg)"    iconColor="var(--red)" />
         <StatCard title={t('dashboard.balance')}       value={fmt(summary.balance)}       subtitle={t('dashboard.thisMonth')} icon={Wallet}       iconBg="var(--blue-bg)"   iconColor="var(--blue)" />

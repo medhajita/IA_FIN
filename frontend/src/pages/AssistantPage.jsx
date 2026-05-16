@@ -73,22 +73,24 @@ export default function AssistantPage() {
       >
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-          <div style={{
-            width: 54, height: 54, borderRadius: 16, flexShrink: 0,
-            background: 'linear-gradient(135deg, #5856D6 0%, #7B79F0 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 18px rgba(88,86,214,0.35)',
-          }}>
-            <Sparkles size={24} color="#fff" strokeWidth={1.75} />
-          </div>
-          <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
-              {t('assistant.title')}
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--green-text)' }}>{t('assistant.online')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{
+              width: 46, height: 46, borderRadius: 13, flexShrink: 0,
+              background: 'linear-gradient(135deg, #5856D6 0%, #7B79F0 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(88,86,214,0.30)',
+            }}>
+              <Sparkles size={22} color="#fff" strokeWidth={1.75} />
+            </div>
+            <div>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
+                {t('assistant.title')}
+              </h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--green-text)' }}>{t('assistant.online')}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -102,7 +104,7 @@ export default function AssistantPage() {
           borderRadius: 'var(--radius-card)',
           border: '1px solid var(--border)',
           boxShadow: 'var(--card-shadow)',
-          padding: '20px 28px 16px',
+          padding: '16px 16px 12px',
           display: 'flex',
           flexDirection: 'column',
           gap: 18,
@@ -169,13 +171,14 @@ export default function AssistantPage() {
 
         {/* Suggestions — shown only before first reply */}
         {messages.length === 1 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flexShrink: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flexShrink: 0 }}>
             {[t('assistant.s0'), t('assistant.s1'), t('assistant.s2'), t('assistant.s3')].map((s) => (
               <button key={s} onClick={() => send(s)} style={{
-                fontSize: 12, fontWeight: 500, padding: '6px 12px',
+                fontSize: 12, fontWeight: 500, padding: '8px 12px',
                 background: 'var(--purple-bg)', color: 'var(--purple-text)',
                 border: '1px solid var(--purple)', borderRadius: 'var(--radius-tag)',
                 cursor: 'pointer', transition: 'opacity 0.15s',
+                textAlign: 'left', lineHeight: 1.4,
               }}>
                 {s}
               </button>

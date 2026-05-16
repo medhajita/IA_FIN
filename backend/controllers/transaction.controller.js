@@ -121,4 +121,61 @@ async function recategorize(req, res) {
   }
 }
 
-module.exports = { uploadCSV, getTransactions, updateTransactionCategory, recategorize };
+async function createTransaction(req, res) {
+  try {
+    const { date, description, amount, type, category_id } = req.body;
+    if (!date || !description || !amount || !type) {
+      return res.status(400).json({ error: 'date, description, amount and type are required' });
+    }
+    if (!['income', 'expense'].includes(type)) {
+      return res.status(400).json({ error: 'type must be income or expense' });
+    }
+    const cat_id = category_id || (await resolveCategory(description, amount, type));
+    const transaction = await Transaction.create({
+      user_id: req.user.id,
+      date,
+      description,
+      amount: parseFloat(amount),
+      type,
+      category_id: cat_id,
+    });
+    return res.status(201).json({ data: { transaction }, message: 'Transaction created' });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function updateTransaction(req, res) {
+  try {
+    const { id } = req.params;
+    const { date, description, amount, type, category_id } = req.body;
+    const transaction = await Transaction.findOne({ where: { id, user_id: req.user.id } });
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+
+    const updates = {};
+    if (date)        updates.date        = date;
+    if (description) updates.description = description;
+    if (amount)      updates.amount      = parseFloat(amount);
+    if (type)        updates.type        = type;
+    if (category_id !== undefined) updates.category_id = category_id || null;
+
+    await transaction.update(updates);
+    return res.status(200).json({ data: { transaction }, message: 'Transaction updated' });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+async function deleteTransaction(req, res) {
+  try {
+    const { id } = req.params;
+    const transaction = await Transaction.findOne({ where: { id, user_id: req.user.id } });
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    await transaction.destroy();
+    return res.status(200).json({ message: 'Transaction deleted' });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { uploadCSV, getTransactions, updateTransactionCategory, recategorize, createTransaction, updateTransaction, deleteTransaction };

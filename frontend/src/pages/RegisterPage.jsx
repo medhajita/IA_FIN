@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { TrendingUp, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, Mail, Lock, User, Phone, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../services/api';
 import { useI18n } from '../context/I18nContext';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { t } = useI18n();
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', phone: '', email: '', password: '', confirm: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,14 +19,14 @@ export default function RegisterPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const { name, email, password, confirm } = form;
-    if (!name || !email || !password || !confirm) return setError(t('register.errRequired'));
+    const { firstName, lastName, phone, email, password, confirm } = form;
+    if (!firstName || !lastName || !email || !password || !confirm) return setError(t('register.errRequired'));
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError(t('register.errEmail'));
     if (password !== confirm) return setError(t('register.errMismatch'));
     if (password.length < 6) return setError(t('register.errLength'));
     setIsLoading(true);
     try {
-      await api.post('/auth/register', { name, email, password });
+      await api.post('/auth/register', { first_name: firstName, last_name: lastName, phone: phone || undefined, email, password });
       setSuccess(t('register.success'));
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
@@ -35,13 +35,6 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   }
-
-  const fields = [
-    { label: t('register.fullName'),        name: 'name',     type: 'text',     icon: User, placeholder: t('register.namePlaceholder') },
-    { label: t('register.email'),           name: 'email',    type: 'email',    icon: Mail, placeholder: 'alice@example.com' },
-    { label: t('register.password'),        name: 'password', type: 'password', icon: Lock, placeholder: t('register.passwordPlaceholder') },
-    { label: t('register.confirmPassword'), name: 'confirm',  type: 'password', icon: Lock, placeholder: t('register.confirmPlaceholder') },
-  ];
 
   return (
     <div style={{
@@ -59,9 +52,18 @@ export default function RegisterPage() {
           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: '0 0 6px' }}>
             {t('register.title')}
           </h1>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
-            {t('register.subtitle')}
-          </p>
+          <div style={{
+            display: 'inline', lineHeight: 1,
+            background: 'var(--blue-bg)', border: '1px solid rgba(74,124,246,0.18)',
+            borderRadius: 20, padding: '5px 14px', marginTop: 4,
+            fontSize: 13, color: 'var(--blue-text)',
+          }}>
+            {t('register.subtitle').split('FinCoach').map((part, i, arr) =>
+              i < arr.length - 1
+                ? [part, <span key={i} style={{ fontWeight: 700, color: 'var(--blue)' }}>FinCoach</span>]
+                : part
+            )}
+          </div>
         </div>
 
         <div className="card" style={{ padding: 28 }}>
@@ -87,21 +89,72 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {fields.map(({ label, name, type, icon: Icon, placeholder }) => (
-              <div key={name}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
-                  {label}
+                  {t('register.firstName')}
                 </label>
                 <div className="input-icon-wrap">
-                  <Icon size={15} className="icon-left" strokeWidth={1.75} />
-                  <input
-                    type={type} name={name} value={form[name]}
-                    onChange={handleChange} placeholder={placeholder}
-                    className="input-field"
-                  />
+                  <User size={15} className="icon-left" strokeWidth={1.75} />
+                  <input type="text" name="firstName" value={form.firstName} onChange={handleChange}
+                    placeholder={t('register.firstNamePlaceholder')} className="input-field" />
                 </div>
               </div>
-            ))}
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                  {t('register.lastName')}
+                </label>
+                <div className="input-icon-wrap">
+                  <User size={15} className="icon-left" strokeWidth={1.75} />
+                  <input type="text" name="lastName" value={form.lastName} onChange={handleChange}
+                    placeholder={t('register.lastNamePlaceholder')} className="input-field" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                {t('register.phone')}
+              </label>
+              <div className="input-icon-wrap">
+                <Phone size={15} className="icon-left" strokeWidth={1.75} />
+                <input type="tel" name="phone" value={form.phone} onChange={handleChange}
+                  placeholder={t('register.phonePlaceholder')} className="input-field" />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                {t('register.email')}
+              </label>
+              <div className="input-icon-wrap">
+                <Mail size={15} className="icon-left" strokeWidth={1.75} />
+                <input type="email" name="email" value={form.email} onChange={handleChange}
+                  placeholder="alice@example.com" className="input-field" />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                {t('register.password')}
+              </label>
+              <div className="input-icon-wrap">
+                <Lock size={15} className="icon-left" strokeWidth={1.75} />
+                <input type="password" name="password" value={form.password} onChange={handleChange}
+                  placeholder={t('register.passwordPlaceholder')} className="input-field" />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                {t('register.confirmPassword')}
+              </label>
+              <div className="input-icon-wrap">
+                <Lock size={15} className="icon-left" strokeWidth={1.75} />
+                <input type="password" name="confirm" value={form.confirm} onChange={handleChange}
+                  placeholder={t('register.confirmPlaceholder')} className="input-field" />
+              </div>
+            </div>
 
             <button type="submit" disabled={isLoading} className="btn-primary" style={{ width: '100%', marginTop: 4 }}>
               {isLoading

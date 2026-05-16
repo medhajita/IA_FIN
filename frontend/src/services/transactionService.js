@@ -15,3 +15,15 @@ export function getTransactions(filters = {}) {
 export function updateCategory(id, categoryId) {
   return api.patch(`/transactions/${id}/category`, { category_id: categoryId });
 }
+
+export function createTransaction(data) {
+  return api.post('/transactions', data);
+}
+
+export function updateTransaction(id, data) {
+  return api.put(`/transactions/${id}`, data);
+}
+
+export function deleteTransaction(id) {
+  return api.delete(`/transactions/${id}`);
+}

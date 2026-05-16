@@ -51,9 +51,18 @@ export default function LoginPage() {
           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: '0 0 6px' }}>
             {t('login.title')}
           </h1>
-          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0 }}>
-            {t('login.subtitle')}
-          </p>
+          <div style={{
+            display: 'inline', lineHeight: 1,
+            background: 'var(--blue-bg)', border: '1px solid rgba(74,124,246,0.18)',
+            borderRadius: 20, padding: '5px 14px', marginTop: 4,
+            fontSize: 13, color: 'var(--blue-text)',
+          }}>
+            {t('login.subtitle').split('FinCoach').map((part, i, arr) =>
+              i < arr.length - 1
+                ? [part, <span key={i} style={{ fontWeight: 700, color: 'var(--blue)' }}>FinCoach</span>]
+                : part
+            )}
+          </div>
         </div>
 
         <div className="card" style={{ padding: 28 }}>

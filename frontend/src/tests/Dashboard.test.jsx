@@ -7,6 +7,30 @@ vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({ user: { name: 'Test User' }, logout: vi.fn() }),
 }));
 
+vi.mock('../context/I18nContext', () => ({
+  useI18n: () => ({
+    t: (key, vars = {}) => ({
+      'dashboard.errLoad': 'Unable to load dashboard',
+      'dashboard.errDemo': 'Unable to load demo',
+      'dashboard.title': 'Dashboard',
+      'dashboard.subtitle': 'Overview',
+      'dashboard.loadDemo': 'Load demo data',
+      'dashboard.income': 'Income',
+      'dashboard.expenses': 'Expenses',
+      'dashboard.balance': 'Balance',
+      'dashboard.savingsRate': 'Savings rate',
+      'dashboard.noData': 'No data yet',
+      'dashboard.noDataSub': 'Import your first CSV to see your dashboard.',
+      'dashboard.recommendations': 'Recommendations',
+      'dashboard.recentTransactions': 'Recent transactions',
+      'dashboard.importCsv': 'Import CSV',
+      'dashboard.byCategory': 'By category',
+      'dashboard.monthlyEvolution': 'Monthly evolution',
+      'dashboard.transactions': `${vars.count ?? 0} transactions`,
+    }[key] || key),
+  }),
+}));
+
 vi.mock('../services/dashboardService', () => ({
   getSummary: vi.fn(),
   getByCategory: vi.fn(),
@@ -38,13 +62,13 @@ const renderDashboard = () =>
 describe('DashboardPage', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('shows loading spinner while fetching', () => {
+  it('shows loading skeleton while fetching', () => {
     getSummary.mockReturnValue(new Promise(() => {}));
     getByCategory.mockReturnValue(new Promise(() => {}));
     getMonthlyEvolution.mockReturnValue(new Promise(() => {}));
     api.get.mockReturnValue(new Promise(() => {}));
     renderDashboard();
-    expect(document.querySelector('.animate-spin')).toBeTruthy();
+    expect(document.querySelector('[style*="shimmer"]')).toBeTruthy();
   });
 
   it('renders KPI cards with correct values', async () => {

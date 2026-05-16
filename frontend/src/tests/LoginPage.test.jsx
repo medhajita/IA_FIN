@@ -7,6 +7,23 @@ vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({ login: vi.fn() }),
 }));
 
+vi.mock('../context/I18nContext', () => ({
+  useI18n: () => ({
+    t: (key) => ({
+      'login.title': 'Welcome back',
+      'login.subtitle': 'Sign in to continue',
+      'login.email': 'Email',
+      'login.password': 'Password',
+      'login.passwordPlaceholder': 'Your password',
+      'login.submit': 'Sign in',
+      'login.noAccount': 'No account?',
+      'login.createOne': 'Create one',
+      'login.errRequired': 'Email and password are required',
+      'login.errFailed': 'Login failed',
+    }[key] || key),
+  }),
+}));
+
 vi.mock('../services/api', () => ({
   default: {
     post: vi.fn(),

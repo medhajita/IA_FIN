@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   TrendingUp, LayoutDashboard, ArrowUpDown,
-  Target, MessageSquare, Sun, Moon, LogOut,
+  Target, MessageSquare, Sun, Moon, LogOut, UserCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -15,12 +15,20 @@ const NAV_KEYS = [
   { to: '/assistant',    tKey: 'nav.assistant',     icon: MessageSquare },
 ];
 
-function getInitials(name) {
+function getDisplayName(user) {
+  if (!user) return '';
+  if (user.name) return user.name;
+  if (user.first_name || user.last_name) return `${user.first_name || ''} ${user.last_name || ''}`.trim();
+  return '';
+}
+
+function getInitials(user) {
+  const name = getDisplayName(user);
   if (!name) return '?';
   return name.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
-function Avatar({ name, size = 28, fontSize = 11 }) {
+function Avatar({ user, size = 28, fontSize = 11 }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%',
@@ -29,7 +37,7 @@ function Avatar({ name, size = 28, fontSize = 11 }) {
       fontSize, fontWeight: 700, letterSpacing: '0.03em', flexShrink: 0,
       userSelect: 'none',
     }}>
-      {getInitials(name)}
+      {getInitials(user)}
     </div>
   );
 }
@@ -62,19 +70,34 @@ export default function Navbar() {
     navigate('/login');
   }
 
+  function handleProfile() {
+    setDesktopDrop(false);
+    setMobileDrop(false);
+    navigate('/profile');
+  }
+
   function isActive(to) {
     if (to === '/dashboard') return location.pathname === '/dashboard';
     return location.pathname.startsWith(to);
   }
 
-  const langBtnStyle = (l) => ({
-    fontSize: 12, fontWeight: 700, padding: '3px 7px',
-    borderRadius: 6, border: '1px solid var(--border)',
-    background: lang === l ? 'var(--blue)' : 'transparent',
-    color: lang === l ? '#fff' : 'var(--text-secondary)',
-    cursor: 'pointer', transition: 'all 0.15s',
-    lineHeight: 1,
-  });
+  const langSegment = {
+    wrap: {
+      display: 'flex', alignItems: 'center',
+      background: 'var(--bg-tertiary)',
+      borderRadius: 20, padding: 3, gap: 2,
+      border: '1px solid var(--border)',
+    },
+    btn: (active) => ({
+      fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+      padding: '4px 11px', borderRadius: 16, border: 'none',
+      background: active ? 'var(--blue)' : 'transparent',
+      color: active ? '#fff' : 'var(--text-secondary)',
+      cursor: 'pointer', transition: 'all 0.18s',
+      boxShadow: active ? '0 1px 4px rgba(74,124,246,0.30)' : 'none',
+      lineHeight: 1,
+    }),
+  };
 
   return (
     <>
@@ -88,7 +111,7 @@ export default function Navbar() {
               <TrendingUp size={16} color="#fff" strokeWidth={1.75} />
             </div>
             <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
-              FinancIA
+              FinCoach
             </span>
           </div>
 
@@ -119,9 +142,9 @@ export default function Navbar() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0 }}>
 
             {/* Lang switcher */}
-            <div style={{ display: 'flex', gap: 3 }}>
-              <button onClick={() => setLang('fr')} style={langBtnStyle('fr')}>FR</button>
-              <button onClick={() => setLang('en')} style={langBtnStyle('en')}>EN</button>
+            <div style={langSegment.wrap}>
+              <button onClick={() => setLang('fr')} style={langSegment.btn(lang === 'fr')}>FR</button>
+              <button onClick={() => setLang('en')} style={langSegment.btn(lang === 'en')}>EN</button>
             </div>
 
             {/* Theme toggle */}
@@ -140,7 +163,7 @@ export default function Navbar() {
                 onClick={() => setDesktopDrop((v) => !v)}
                 style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
               >
-                <Avatar name={user?.name} size={32} fontSize={12} />
+                <Avatar user={user} size={32} fontSize={12} />
               </button>
 
               {desktopDrop && (
@@ -152,10 +175,10 @@ export default function Navbar() {
                 }}>
                   <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <Avatar name={user?.name} size={40} fontSize={15} />
+                      <Avatar user={user} size={40} fontSize={15} />
                       <div style={{ minWidth: 0 }}>
                         <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {user?.name}
+                          {getDisplayName(user)}
                         </p>
                         <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {user?.email}
@@ -164,6 +187,21 @@ export default function Navbar() {
                     </div>
                   </div>
                   <div style={{ padding: 4 }}>
+                    <button
+                      onClick={handleProfile}
+                      style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '9px 12px', background: 'none', border: 'none',
+                        borderRadius: 10, cursor: 'pointer',
+                        fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
+                        textAlign: 'left', transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                    >
+                      <UserCircle size={14} strokeWidth={1.75} />
+                      {t('nav.myProfile')}
+                    </button>
                     <button
                       onClick={handleLogout}
                       style={{
@@ -202,10 +240,10 @@ export default function Navbar() {
           >
             <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Avatar name={user?.name} size={38} fontSize={14} />
+                <Avatar user={user} size={38} fontSize={14} />
                 <div style={{ minWidth: 0 }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {user?.name}
+                    {getDisplayName(user)}
                   </p>
                   <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user?.email}
@@ -214,11 +252,44 @@ export default function Navbar() {
               </div>
             </div>
             {/* Lang switcher in mobile dropdown */}
-            <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 6 }}>
-              <button onClick={() => setLang('fr')} style={langBtnStyle('fr')}>FR</button>
-              <button onClick={() => setLang('en')} style={langBtnStyle('en')}>EN</button>
+            <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'center' }}>
+              <div style={langSegment.wrap}>
+                <button onClick={() => setLang('fr')} style={langSegment.btn(lang === 'fr')}>FR</button>
+                <button onClick={() => setLang('en')} style={langSegment.btn(lang === 'en')}>EN</button>
+              </div>
             </div>
+            {/* Theme toggle in mobile dropdown */}
+            <button
+              onClick={toggle}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                padding: '9px 16px', background: 'none', border: 'none',
+                borderBottom: '1px solid var(--border)',
+                cursor: 'pointer', fontSize: 13, fontWeight: 500,
+                color: 'var(--text-primary)', textAlign: 'left',
+              }}
+            >
+              {theme === 'dark'
+                ? <Sun  size={14} strokeWidth={1.75} color="var(--orange)" />
+                : <Moon size={14} strokeWidth={1.75} color="var(--blue)"   />}
+              {theme === 'dark' ? t('nav.lightMode') || 'Mode clair' : t('nav.darkMode') || 'Mode sombre'}
+            </button>
             <div style={{ padding: 4 }}>
+              <button
+                onClick={handleProfile}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '9px 12px', background: 'none', border: 'none',
+                  borderRadius: 10, cursor: 'pointer',
+                  fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
+                  textAlign: 'left', transition: 'background 0.15s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+              >
+                <UserCircle size={14} strokeWidth={1.75} />
+                {t('nav.myProfile')}
+              </button>
               <button
                 onClick={handleLogout}
                 style={{
@@ -286,7 +357,7 @@ export default function Navbar() {
               fontSize: 8.5, fontWeight: 700, color: mobileDrop ? '#fff' : 'var(--text-secondary)',
               letterSpacing: '0.03em',
             }}>
-              {getInitials(user?.name)}
+              {getInitials(user)}
             </div>
             <span style={{
               fontSize: 9.5, fontWeight: mobileDrop ? 600 : 500,

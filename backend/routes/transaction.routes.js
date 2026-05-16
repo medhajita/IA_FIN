@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const verifyToken = require('../middlewares/auth.middleware');
-const { uploadCSV, getTransactions, updateTransactionCategory, recategorize } = require('../controllers/transaction.controller');
+const { uploadCSV, getTransactions, updateTransactionCategory, recategorize, createTransaction, updateTransaction, deleteTransaction } = require('../controllers/transaction.controller');
 
 const storage = multer.diskStorage({
   destination: path.join(__dirname, '../uploads'),
@@ -25,6 +25,9 @@ const upload = multer({
 router.post('/upload', verifyToken, upload.single('file'), uploadCSV);
 router.post('/categorize', verifyToken, recategorize);
 router.get('/', verifyToken, getTransactions);
+router.post('/', verifyToken, createTransaction);
+router.put('/:id', verifyToken, updateTransaction);
+router.delete('/:id', verifyToken, deleteTransaction);
 router.patch('/:id/category', verifyToken, updateTransactionCategory);
 
 module.exports = router;

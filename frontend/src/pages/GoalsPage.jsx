@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Target, PiggyBank, CheckCircle2, AlertCircle } from 'lucide-react';
-import { getGoals, createGoal, deleteGoal, contributeToGoal } from '../services/goalService';
+import { Plus, Trash2, Pencil, Target, PiggyBank, CheckCircle2, AlertCircle } from 'lucide-react';
+import { getGoals, createGoal, updateGoal, deleteGoal, contributeToGoal } from '../services/goalService';
 import { getSummary } from '../services/dashboardService';
 import { useI18n } from '../context/I18nContext';
 import ProgressBar from '../components/ui/ProgressBar';
@@ -21,6 +21,10 @@ export default function GoalsPage() {
   const [fundError,     setFundError]     = useState('');
   const [fundLoading,   setFundLoading]   = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [editModal,     setEditModal]     = useState(null);  // goal object
+  const [editForm,      setEditForm]      = useState({ title: '', target_amount: '', deadline: '' });
+  const [editError,     setEditError]     = useState('');
+  const [editSubmitting,setEditSubmitting]= useState(false);
   const [form,          setForm]          = useState({ title: '', target_amount: '', deadline: '' });
   const [formError,     setFormError]     = useState('');
   const [submitting,    setSubmitting]    = useState(false);
@@ -97,6 +101,33 @@ export default function GoalsPage() {
     } catch { /* silent */ }
   };
 
+  const openEditModal = (goal) => {
+    setEditModal(goal);
+    setEditForm({
+      title: goal.title,
+      target_amount: String(goal.target_amount),
+      deadline: goal.deadline ? goal.deadline.slice(0, 10) : '',
+    });
+    setEditError('');
+  };
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    setEditError('');
+    if (!editForm.title || !editForm.target_amount || !editForm.deadline)
+      return setEditError(t('goals.errRequired'));
+    if (parseFloat(editForm.target_amount) <= 0)
+      return setEditError(t('goals.errAmount'));
+    setEditSubmitting(true);
+    try {
+      await updateGoal(editModal.id, editForm);
+      setEditModal(null);
+      fetchAll();
+    } catch (err) {
+      setEditError(err.response?.data?.error || t('goals.errEdit'));
+    } finally { setEditSubmitting(false); }
+  };
+
   const selectedGoal = goals.find((g) => g.id === fundModal);
 
   if (loading) return (
@@ -109,24 +140,51 @@ export default function GoalsPage() {
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px 20px' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <IconBox icon={Target} bgColor="var(--purple-bg)" iconColor="var(--purple)" size="md" />
+      <div className="goals-page-header" style={{ marginBottom: 24 }}>
+        {/* Title row */}
+        <div className="goals-header" style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+          <div className="goals-header-icon" style={{
+            width: 46, height: 46, borderRadius: 13, flexShrink: 0,
+            background: 'linear-gradient(135deg, var(--purple) 0%, #9ba3f7 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 16px rgba(110,123,242,0.30)',
+          }}>
+            <Target size={22} color="#fff" strokeWidth={1.75} />
+          </div>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: 0 }}>
+            <h1 className="goals-header-title" style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
               {t('goals.title')}
             </h1>
-            {balance !== null && (
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0' }}>
-                {t('goals.availableBalance')} <strong style={{ color: balance >= 0 ? 'var(--green)' : 'var(--red)' }}>{fmt(balance)}</strong>
-              </p>
-            )}
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '3px 0 0' }}>
+              {t('goals.subtitle')}
+            </p>
           </div>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="btn-primary">
-          <Plus size={15} strokeWidth={2} />
-          {t('goals.newGoal')}
-        </button>
+        {/* Balance + action row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {balance !== null && (
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: balance >= 0 ? 'var(--green-bg)' : 'var(--red-bg)',
+              color: balance >= 0 ? 'var(--green-text)' : 'var(--red-text)',
+              fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+              padding: '7px 14px', borderRadius: 'var(--radius-tag)',
+            }}>
+              {t('goals.availableBalance')} {fmt(balance)}
+            </span>
+          )}
+          <button onClick={() => setShowForm(!showForm)} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: 'var(--purple-bg)', color: 'var(--purple-text)',
+            fontSize: 12, fontWeight: 600, padding: '7px 14px', whiteSpace: 'nowrap',
+            borderRadius: 'var(--radius-tag)',
+            border: 'none', cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+          }}>
+            <Plus size={14} strokeWidth={2.5} />
+            {t('goals.newGoal')}
+          </button>
+        </div>
       </div>
 
       {/* Create form */}
@@ -205,14 +263,24 @@ export default function GoalsPage() {
                       {t('goals.deadline')} {new Date(goal.deadline).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setDeleteConfirm(goal.id)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, color: 'var(--text-tertiary)' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--red)'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
-                  >
-                    <Trash2 size={15} strokeWidth={1.75} />
-                  </button>
+                  <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                    <button
+                      onClick={() => openEditModal(goal)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, color: 'var(--text-tertiary)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--blue)'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                    >
+                      <Pencil size={15} strokeWidth={1.75} />
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(goal.id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, color: 'var(--text-tertiary)' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = 'var(--red)'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                    >
+                      <Trash2 size={15} strokeWidth={1.75} />
+                    </button>
+                  </div>
                 </div>
 
                 <ProgressBar value={goal.progress} color={overdue ? 'red' : 'blue'} showPercentage />
@@ -309,6 +377,43 @@ export default function GoalsPage() {
             <button onClick={() => setDeleteConfirm(null)} className="btn-ghost" style={{ flex: 1 }}>{t('goals.cancel')}</button>
           </div>
         </div>
+      </Modal>
+
+      {/* Edit goal modal */}
+      <Modal isOpen={!!editModal} onClose={() => setEditModal(null)} title={t('goals.editTitle')}>
+        <form onSubmit={handleEdit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {editError && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: 'var(--red-bg)', color: 'var(--red-text)', borderRadius: 'var(--radius-sm)', fontSize: 13 }}>
+              <AlertCircle size={14} strokeWidth={2} />{editError}
+            </div>
+          )}
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>{t('goals.titleLabel')}</label>
+            <input type="text" value={editForm.title}
+              onChange={(e) => setEditForm(f => ({ ...f, title: e.target.value }))}
+              className="input-field" placeholder={t('goals.titlePlaceholder')} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>{t('goals.targetLabel')}</label>
+            <input type="number" min="1" step="0.01" value={editForm.target_amount}
+              onChange={(e) => setEditForm(f => ({ ...f, target_amount: e.target.value }))}
+              className="input-field" />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 6 }}>{t('goals.deadlineLabel')}</label>
+            <input type="date" value={editForm.deadline}
+              onChange={(e) => setEditForm(f => ({ ...f, deadline: e.target.value }))}
+              className="input-field" />
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="submit" disabled={editSubmitting} className="btn-primary" style={{ flex: 1 }}>
+              {editSubmitting ? t('goals.creating') : t('goals.editGoal')}
+            </button>
+            <button type="button" onClick={() => setEditModal(null)} className="btn-ghost" style={{ flex: 1 }}>
+              {t('goals.cancel')}
+            </button>
+          </div>
+        </form>
       </Modal>
     </div>
   );
