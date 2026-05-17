@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, Sparkles } from 'lucide-react';
+import { Send, Bot, BrainCircuit } from 'lucide-react';
 import { askQuestion } from '../services/chatbotService';
 import IconBox from '../components/ui/IconBox';
 import { useAuth } from '../context/AuthContext';
@@ -81,7 +81,7 @@ export default function AssistantPage() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 4px 16px rgba(88,86,214,0.30)',
             }}>
-              <Sparkles size={22} color="#fff" strokeWidth={1.75} />
+              <BrainCircuit size={22} color="#fff" strokeWidth={1.75} />
             </div>
             <div>
               <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
