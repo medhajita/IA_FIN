@@ -137,12 +137,12 @@ export default function GoalsPage() {
   );
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '24px 20px' }}>
+    <div className="goals-page-shell" style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px' }}>
 
       {/* Header */}
-      <div className="goals-page-header" style={{ marginBottom: 24 }}>
+      <div className="goals-page-header" style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20 }}>
         {/* Title row */}
-        <div className="goals-header" style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+        <div className="goals-header" style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
           <div className="goals-header-icon" style={{
             width: 46, height: 46, borderRadius: 13, flexShrink: 0,
             background: 'linear-gradient(135deg, var(--purple) 0%, #9ba3f7 100%)',
@@ -161,7 +161,7 @@ export default function GoalsPage() {
           </div>
         </div>
         {/* Balance + action row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="goals-actions-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10, flexShrink: 0 }}>
           {balance !== null && (
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
