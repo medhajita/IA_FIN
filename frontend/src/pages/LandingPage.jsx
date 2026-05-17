@@ -1,4 +1,5 @@
-﻿import { Link } from 'react-router-dom';
+﻿import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   ArrowUpDown,
@@ -9,13 +10,10 @@ import {
   Languages,
   LayoutDashboard,
   LockKeyhole,
-  MessageSquare,
   Moon,
   ShieldCheck,
   Sun,
   Target,
-  TrendingUp,
-  WalletCards,
 } from 'lucide-react';
 import { useI18n } from '../context/I18nContext';
 import { useTheme } from '../context/ThemeContext';
@@ -63,7 +61,7 @@ const landingCopy = {
       eyebrow: 'AI that turns spending into decisions',
       title: 'Know where your money goes before the month slips away.',
       text: 'FinCoach turns CSV transactions into a clear dashboard, useful categories, savings goals and AI answers grounded in your real monthly data.',
-      proof: ['CSV import', 'AI recommendations', 'Goals', 'Light / Dark', 'FR / EN'],
+      proof: ['CSV import', 'AI recommendations', 'Goals'],
     },
     screens: {
       dashboard: {
@@ -84,7 +82,7 @@ const landingCopy = {
       assistant: {
         title: 'AI Assistant',
         kicker: '04 / Guidance',
-        text: "The assistant answers from the user's current financial data and keeps quick prompts ready.",
+        text: "The assistant answers from the user's current financial data and keeps quick prompts close at hand.",
       },
       profile: {
         title: 'Profile',
@@ -93,14 +91,14 @@ const landingCopy = {
       },
     },
     showcase: {
-      kicker: 'Real mobile screens',
-      title: 'Every main page is shown from the app itself.',
-      text: 'These are real mobile captures from the project, placed inside clean phone frames so visitors see the finished product immediately.',
+      kicker: 'Product tour',
+      title: 'FinCoach, shown through the app itself.',
+      text: 'Explore the dashboard, transaction flow and savings goals through screens captured directly from the project.',
     },
     timelineIntro: {
-      kicker: 'Why now',
-      title: 'You do not need another app that only lists transactions.',
-      text: 'Raw lists are useful for accountants. Everyday decisions need context: what changed, what deserves attention and what you can do next.',
+      kicker: 'How it works',
+      title: 'From CSV import to clearer financial decisions.',
+      text: 'FinCoach connects transactions, categories, goals and AI insights so each monthly view is easier to understand and act on.',
     },
     timeline: [
       {
@@ -121,7 +119,7 @@ const landingCopy = {
     ],
     product: {
       kicker: 'Product',
-      title: 'Everything important, inside a clear web interface.',
+      title: 'Your money, organized at a glance.',
       insightLabel: 'Context-aware AI',
       insightTitle: 'Ask questions against the month you are living in.',
       insightText: 'The assistant builds answers from your income, expenses, balance, savings rate and spending by category, then keeps responses short and practical.',
@@ -129,18 +127,18 @@ const landingCopy = {
     featureTabs: [
       {
         name: 'Overview',
-        title: 'Your money, organized around decisions.',
-        points: ['KPI cards for the month', 'Category breakdowns', 'Six-month evolution'],
+        title: 'Your money, organized at a glance.',
+        points: ['Monthly KPIs', 'Category breakdowns', 'Signals that show what deserves attention'],
       },
       {
         name: 'AI',
-        title: 'Recommendations that know the context.',
-        points: ['Savings-rate alerts', 'Food and subscription signals', 'French and English answers'],
+        title: 'An AI that understands your finances.',
+        points: ['Answers grounded in your data', 'Spending and savings signals', 'French and English answers'],
       },
       {
         name: 'Control',
-        title: 'You keep the final say.',
-        points: ['Manual category override', 'Private routes by token', 'Demo data for fast review'],
+        title: 'Transactions that stay under control.',
+        points: ['CSV import', 'Manual category override', 'Private routes by token'],
       },
     ],
     difference: {
@@ -165,12 +163,12 @@ const landingCopy = {
       { icon: 'shield', title: 'Authenticated access', text: 'Protected app routes use JWT sessions and profile validation.' },
       { icon: 'lock', title: 'User isolation', text: 'Queries are scoped to the signed-in user for transactions, goals and insights.' },
       { icon: 'lang', title: 'French and English', text: 'The interface includes a language switcher so the same app can serve both flows.' },
-      { icon: 'moon', title: 'Theme ready', text: 'Light and dark modes are already part of the core product experience.' },
+      { icon: 'moon', title: 'Light and dark themes', text: 'The interface adapts to both visual modes across the landing and the app screens.' },
     ],
     cta: {
-      kicker: 'Ready when you are',
-      title: 'Start with demo data or import your first CSV.',
-      text: 'Create an account, open the dashboard and use the demo loader to see the full experience before importing your own transactions.',
+      kicker: 'Your FinCoach workspace',
+      title: 'Open FinCoach and bring your first month into view.',
+      text: 'Create an account, load demo data or import a CSV, then review your dashboard, transactions, goals and AI recommendations.',
     },
     faqIntro: {
       kicker: 'FAQ',
@@ -182,8 +180,8 @@ const landingCopy = {
         a: 'FinCoach helps users import spending data, understand monthly cash flow, organize categories, follow goals and ask an AI assistant about their finances.',
       },
       {
-        q: 'Is the product already usable?',
-        a: 'Yes. The app includes authentication, dashboard views, CSV import, transactions, savings goals, recommendations, an assistant and demo data.',
+        q: 'What can I do inside FinCoach?',
+        a: 'You can create an account, import CSV transactions, review the dashboard, manage goals, read recommendations and ask the AI assistant about your finances.',
       },
       {
         q: 'Does it replace a bank account?',
@@ -194,7 +192,15 @@ const landingCopy = {
         a: 'Create an account or sign in, then use the dashboard demo loader or import a CSV file from the transactions page.',
       },
     ],
-    footer: 'Personal finance with AI, built for clear decisions.',
+    footer: {
+      text: 'Personal finance with AI, built for clear decisions every month.',
+      productTitle: 'Product',
+      trustTitle: 'Trust',
+      accessTitle: 'Access',
+      trustItems: ['Protected routes', 'User-scoped data', 'Light and dark UI'],
+      note: 'CSV import, goals, recommendations and AI answers in one clear workspace.',
+      copyright: 'FinCoach. Clear money decisions, every month.',
+    },
   },
   fr: {
     meta: {
@@ -221,7 +227,7 @@ const landingCopy = {
       eyebrow: "L'IA qui transforme vos dépenses en décisions",
       title: "Comprenez où va votre argent avant la fin du mois.",
       text: "FinCoach transforme vos transactions CSV en tableau de bord clair, catégories utiles, objectifs d'épargne et réponses IA basées sur vos vraies données mensuelles.",
-      proof: ['Import CSV', 'Recommandations IA', 'Objectifs', 'Clair / Sombre', 'FR / EN'],
+      proof: ['Import CSV', 'Recommandations IA', 'Objectifs'],
     },
     screens: {
       dashboard: {
@@ -242,7 +248,7 @@ const landingCopy = {
       assistant: {
         title: 'Assistant IA',
         kicker: '04 / Guidance',
-        text: "L'assistant répond à partir des données financières actuelles et garde des questions rapides prêtes.",
+        text: "L'assistant répond à partir des données financières actuelles et propose des questions rapides.",
       },
       profile: {
         title: 'Profil',
@@ -251,14 +257,14 @@ const landingCopy = {
       },
     },
     showcase: {
-      kicker: 'Vrais écrans mobiles',
-      title: "Chaque page principale vient directement de l'application.",
-      text: 'Ce sont de vraies captures mobiles du projet, placées dans des téléphones propres pour montrer le produit fini dès le premier regard.',
+      kicker: 'Visite du produit',
+      title: "FinCoach se présente par l'application.",
+      text: 'Découvrez le tableau de bord, les transactions et les objectifs à travers les écrans capturés directement depuis le projet.',
     },
     timelineIntro: {
-      kicker: 'Pourquoi maintenant',
-      title: "Vous n'avez pas besoin d'une app qui liste seulement les transactions.",
-      text: 'Les listes brutes aident à vérifier. Les décisions du quotidien demandent du contexte: ce qui change, ce qui mérite attention et la prochaine action.',
+      kicker: 'Comment ça marche',
+      title: 'De l’import CSV à des décisions financières plus claires.',
+      text: 'FinCoach relie transactions, catégories, objectifs et insights IA pour rendre chaque vue mensuelle plus simple à comprendre et à utiliser.',
     },
     timeline: [
       {
@@ -279,7 +285,7 @@ const landingCopy = {
     ],
     product: {
       kicker: 'Produit',
-      title: "Tout l'essentiel dans une interface web claire.",
+      title: "Votre argent organisé en un coup d'œil.",
       insightLabel: 'IA avec contexte',
       insightTitle: 'Posez vos questions sur le mois que vous êtes en train de vivre.',
       insightText: "L'assistant construit ses réponses depuis vos revenus, dépenses, solde, taux d'épargne et catégories, puis reste court et pratique.",
@@ -287,18 +293,18 @@ const landingCopy = {
     featureTabs: [
       {
         name: 'Vue globale',
-        title: 'Votre argent organisé autour des décisions.',
-        points: ['Cartes KPI du mois', 'Répartition par catégorie', 'Évolution sur six mois'],
+        title: "Votre argent organisé en un coup d'œil.",
+        points: ['KPIs du mois', 'Répartition par catégorie', "Signaux qui montrent ce qui mérite attention"],
       },
       {
         name: 'IA',
-        title: 'Des recommandations qui connaissent le contexte.',
-        points: ["Alertes sur l'épargne", 'Signaux repas et abonnements', 'Réponses en français et anglais'],
+        title: 'Une IA qui comprend vos finances.',
+        points: ['Réponses basées sur vos données', 'Signaux dépenses et épargne', 'Réponses en français et anglais'],
       },
       {
         name: 'Contrôle',
-        title: 'Vous gardez toujours le dernier mot.',
-        points: ['Correction manuelle des catégories', 'Routes privées par token', 'Données démo pour tester vite'],
+        title: 'Des transactions toujours sous contrôle.',
+        points: ['Import CSV', 'Correction manuelle des catégories', 'Routes privées par token'],
       },
     ],
     difference: {
@@ -323,12 +329,12 @@ const landingCopy = {
       { icon: 'shield', title: 'Accès authentifié', text: 'Les routes privées utilisent des sessions JWT et la validation du profil.' },
       { icon: 'lock', title: 'Données isolées', text: "Les transactions, objectifs et insights restent liés à l'utilisateur connecté." },
       { icon: 'lang', title: 'Français et anglais', text: 'Le sélecteur de langue permet de servir les deux parcours dans la même app.' },
-      { icon: 'moon', title: 'Thèmes prêts', text: "Les modes clair et sombre font déjà partie de l'expérience principale." },
+      { icon: 'moon', title: 'Thèmes clair et sombre', text: "L'interface s'adapte aux deux modes visuels sur la landing et dans les écrans de l'app." },
     ],
     cta: {
-      kicker: "Prêt quand vous l'êtes",
-      title: 'Commencez avec la démo ou importez votre premier CSV.',
-      text: "Créez un compte, ouvrez le tableau de bord et chargez les données démo pour voir l'expérience complète.",
+      kicker: 'Votre espace FinCoach',
+      title: 'Ouvrez FinCoach et mettez votre mois en clair.',
+      text: 'Créez un compte, chargez la démo ou importez un CSV, puis consultez tableau de bord, transactions, objectifs et recommandations IA.',
     },
     faqIntro: {
       kicker: 'FAQ',
@@ -340,8 +346,8 @@ const landingCopy = {
         a: 'FinCoach aide à importer les dépenses, comprendre le mois, organiser les catégories, suivre les objectifs et interroger un assistant IA.',
       },
       {
-        q: 'Le produit est-il déjà utilisable ?',
-        a: "Oui. L'app inclut authentification, tableau de bord, import CSV, transactions, objectifs, recommandations, assistant et données démo.",
+        q: 'Que peut-on faire dans FinCoach ?',
+        a: "Vous pouvez créer un compte, importer des transactions CSV, consulter le tableau de bord, gérer les objectifs, lire les recommandations et interroger l'assistant IA.",
       },
       {
         q: 'Est-ce que ça remplace une banque ?',
@@ -352,7 +358,15 @@ const landingCopy = {
         a: 'Créez un compte ou connectez-vous, puis utilisez la démo du tableau de bord ou importez un CSV depuis Transactions.',
       },
     ],
-    footer: 'Finances personnelles avec IA, conçues pour décider clairement.',
+    footer: {
+      text: 'Finances personnelles avec IA, conçues pour décider clairement chaque mois.',
+      productTitle: 'Produit',
+      trustTitle: 'Confiance',
+      accessTitle: 'Accès',
+      trustItems: ['Routes protégées', 'Données isolées', 'Interface claire et sombre'],
+      note: 'Import CSV, objectifs, recommandations et réponses IA dans un espace clair.',
+      copyright: 'FinCoach. Des décisions financières plus claires, chaque mois.',
+    },
   },
 };
 
@@ -364,9 +378,9 @@ function getScreens(copy, theme, lang) {
   }));
 }
 
-function PhoneFrame({ screen, priority = false, compact = false }) {
+function PhoneFrame({ screen, priority = false, size = 'md' }) {
   return (
-    <div className={`landing-phone-shot ${compact ? 'landing-phone-shot-compact' : ''}`}>
+    <div className={`landing-phone-shot landing-phone-shot-${size} landing-phone-shot-${screen.key}`}>
       <div className="landing-phone-device" aria-label={`${screen.title} mobile app screenshot`}>
         <span className="landing-device-side landing-device-side-left" aria-hidden="true" />
         <span className="landing-device-side landing-device-side-right" aria-hidden="true" />
@@ -413,13 +427,56 @@ export default function LandingPage() {
   const copy = landingCopy[lang] || landingCopy.fr;
   const appScreens = getScreens(copy, theme, lang);
   const isDark = theme === 'dark';
+  const [activeTab, setActiveTab] = useState(1);
+
+  const isFr = lang === 'fr';
+  const featureSections = [
+    {
+      tag: copy.featureTabs[0].name,
+      title: copy.featureTabs[0].title,
+      desc: copy.featureTabs[0].points[0],
+      points: copy.featureTabs[0].points,
+      screenKey: 'dashboard',
+      iconKey: 'overview',
+    },
+    {
+      tag: copy.screens.transactions.title,
+      title: isFr ? 'Toutes vos transactions, filtrées et claires.' : 'All your transactions, filtered and clear.',
+      desc: copy.screens.transactions.text,
+      points: copy.featureTabs[2].points,
+      screenKey: 'transactions',
+      iconKey: 'transactions',
+    },
+    {
+      tag: copy.screens.goals.title,
+      title: isFr ? "Objectifs reliés à votre solde réel." : 'Goals connected to your real balance.',
+      desc: copy.screens.goals.text,
+      points: [
+        isFr ? 'Progression en temps réel' : 'Real-time progress',
+        isFr ? 'Relié au solde disponible' : 'Connected to balance',
+        isFr ? 'Dates cibles personnalisées' : 'Custom target dates',
+      ],
+      screenKey: 'goals',
+      iconKey: 'goals',
+    },
+    {
+      tag: copy.featureTabs[1].name,
+      title: copy.featureTabs[1].title,
+      desc: copy.featureTabs[1].points[0],
+      points: copy.featureTabs[1].points,
+      screenKey: 'assistant',
+      iconKey: 'ai',
+    },
+  ];
+
+  const activeScreen = appScreens.find(s => s.key === featureSections[activeTab].screenKey) || appScreens[0];
 
   return (
     <div className={`landing-page landing-page-${theme}`}>
       <header className="landing-nav">
         <a className="landing-brand" href="#top" aria-label={copy.meta.brandAria}>
           <span className="landing-brand-mark">
-            <TrendingUp size={18} strokeWidth={1.8} />
+            <img src="/favicon.svg" alt="" aria-hidden="true" />
           </span>
           <span>FinCoach</span>
         </a>
@@ -478,21 +535,27 @@ export default function LandingPage() {
             <h2>{copy.showcase.title}</h2>
             <p>{copy.showcase.text}</p>
           </div>
-          <div className="landing-app-gallery">
-            {appScreens.map((screen, index) => (
-              <article className={index === 0 ? 'landing-app-screen-card landing-app-screen-card-featured' : 'landing-app-screen-card'} key={screen.key}>
-                <div className="landing-app-screen-copy">
-                  <span>{screen.kicker}</span>
-                  <h3>{screen.title}</h3>
-                  <p>{screen.text}</p>
+          <div className="landing-3phones">
+            {[
+              { key: 'transactions' },
+              { key: 'dashboard' },
+              { key: 'goals' },
+            ].map(({ key }) => {
+              const s = appScreens.find(sc => sc.key === key);
+              return (
+                <div key={key} className="landing-3phone-wrap">
+                  <PhoneFrame screen={s} size="md" />
+                  <div className="landing-3phone-label">
+                    <span className="landing-3phone-tag">{s.kicker.split(' / ')[1] || s.title}</span>
+                    <p>{s.text}</p>
+                  </div>
                 </div>
-                <PhoneFrame screen={screen} compact={index !== 0} />
-              </article>
-            ))}
+              );
+            })}
           </div>
         </section>
 
-        <section className="landing-section landing-split">
+        <section className="landing-section landing-split landing-process">
           <div>
             <span className="landing-section-kicker">{copy.timelineIntro.kicker}</span>
             <h2>{copy.timelineIntro.title}</h2>
@@ -511,33 +574,44 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="landing-section landing-feature-band">
-          <div className="landing-section-head landing-section-head-left">
+        <section className="landing-section landing-feat3-section" id="focus">
+          <div className="landing-section-head">
             <span className="landing-section-kicker">{copy.product.kicker}</span>
             <h2>{copy.product.title}</h2>
           </div>
-          <div className="landing-feature-layout">
-            <div className="landing-feature-tabs">
-              {copy.featureTabs.map((item) => (
-                <article className="landing-feature-tab" key={item.name}>
-                  <span>{item.name}</span>
-                  <h3>{item.title}</h3>
-                  <ul>
-                    {item.points.map((point) => (
-                      <li key={point}>
-                        <CheckCircle2 size={16} strokeWidth={1.9} />
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
-                </article>
-              ))}
+          <div className="landing-feat3-layout">
+            <div className="landing-feat3-tabs">
+              {featureSections.map((tab, i) => {
+                const Icon = featureIcons[tab.iconKey];
+                return (
+                  <button
+                    key={tab.tag}
+                    className={`landing-feat3-tab${activeTab === i ? ' is-active' : ''}`}
+                    onClick={() => setActiveTab(i)}
+                  >
+                    <div className="landing-feat3-tab-icon">
+                      <Icon size={18} strokeWidth={1.8} />
+                    </div>
+                    <div className="landing-feat3-tab-body">
+                      <span className="landing-feat3-tab-name">{tab.tag}</span>
+                      <strong className="landing-feat3-tab-title">{tab.title}</strong>
+                      <p className="landing-feat3-tab-text">{tab.desc}</p>
+                    </div>
+                    <ChevronRight size={16} strokeWidth={2} className="landing-feat3-arrow" />
+                  </button>
+                );
+              })}
             </div>
-            <div className="landing-insight-panel">
-              <BrainCircuit size={30} strokeWidth={1.6} />
-              <span>{copy.product.insightLabel}</span>
-              <h3>{copy.product.insightTitle}</h3>
-              <p>{copy.product.insightText}</p>
+            <div className="landing-feat3-phone">
+              <PhoneFrame key={activeScreen?.key} screen={activeScreen} size="lg" priority />
+            </div>
+            <div className="landing-feat3-pills">
+              {featureSections[activeTab].points.map((point) => (
+                <div key={point} className="landing-feat3-pill">
+                  <CheckCircle2 size={15} strokeWidth={2} />
+                  <span>{point}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -556,7 +630,10 @@ export default function LandingPage() {
               <div className="landing-compare-row" role="row" key={criteria}>
                 <span role="cell">{criteria}</span>
                 <span role="cell">{generic}</span>
-                <span role="cell">{fincoach}</span>
+                <span className="landing-compare-win" role="cell">
+                  <CheckCircle2 size={17} strokeWidth={2.1} />
+                  <span>{fincoach}</span>
+                </span>
               </div>
             ))}
           </div>
@@ -573,9 +650,13 @@ export default function LandingPage() {
               const Icon = trustIcons[icon];
               return (
                 <article className="landing-trust-item" key={title}>
-                  <Icon size={22} strokeWidth={1.8} />
-                  <h3>{title}</h3>
-                  <p>{text}</p>
+                  <span className="landing-trust-icon">
+                    <Icon size={20} strokeWidth={1.9} />
+                  </span>
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{text}</p>
+                  </div>
                 </article>
               );
             })}
@@ -606,9 +687,12 @@ export default function LandingPage() {
             <h2>{copy.faqIntro.title}</h2>
           </div>
           <div className="landing-faq-grid">
-            {copy.faqs.map((item) => (
+            {copy.faqs.map((item, index) => (
               <article className="landing-faq-item" key={item.q}>
-                <h3>{item.q}</h3>
+                <div className="landing-faq-question">
+                  <span className="landing-faq-index">{String(index + 1).padStart(2, '0')}</span>
+                  <h3>{item.q}</h3>
+                </div>
                 <p>{item.a}</p>
               </article>
             ))}
@@ -617,16 +701,67 @@ export default function LandingPage() {
       </main>
 
       <footer className="landing-footer">
-        <a className="landing-brand" href="#top" aria-label={copy.meta.brandAria}>
-          <span className="landing-brand-mark">
-            <WalletCards size={18} strokeWidth={1.8} />
-          </span>
-          <span>FinCoach</span>
-        </a>
-        <p>{copy.footer}</p>
-        <div>
-          <Link to="/login">{copy.meta.signIn}</Link>
-          <Link to="/register">{copy.meta.create}</Link>
+        <div className="landing-footer-panel">
+          <div className="landing-footer-brand">
+            <a className="landing-brand" href="#top" aria-label={copy.meta.brandAria}>
+              <span className="landing-brand-mark">
+                <img src="/favicon.svg" alt="" aria-hidden="true" />
+              </span>
+              <span>FinCoach</span>
+            </a>
+            <p>{copy.footer.text}</p>
+            <div className="landing-footer-badges">
+              {copy.hero.proof.map((item) => (
+                <span key={item}>
+                  <BadgeCheck size={14} strokeWidth={2} />
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <nav className="landing-footer-column" aria-label={copy.meta.navAria}>
+            <h3>{copy.footer.productTitle}</h3>
+            {copy.nav.map((item) => (
+              <a key={item.href} href={item.href}>{item.label}</a>
+            ))}
+          </nav>
+
+          <div className="landing-footer-column">
+            <h3>{copy.footer.trustTitle}</h3>
+            {copy.footer.trustItems.map((item) => (
+              <span className="landing-footer-trust" key={item}>
+                <CheckCircle2 size={15} strokeWidth={2} />
+                {item}
+              </span>
+            ))}
+          </div>
+
+          <div className="landing-footer-card">
+            <h3>{copy.footer.accessTitle}</h3>
+            <p>{copy.footer.note}</p>
+            <div className="landing-footer-actions">
+              <Link className="landing-primary-button landing-small-button" to="/register">
+                {copy.meta.create}
+                <ArrowRight size={16} strokeWidth={1.9} />
+              </Link>
+              <Link className="landing-secondary-button landing-small-button" to="/login">
+                {copy.meta.signIn}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="landing-footer-bottom">
+          <span>{copy.footer.copyright}</span>
+          <a
+            className="landing-footer-top-button"
+            href="#top"
+            aria-label={lang === 'fr' ? 'Retour en haut' : 'Back to top'}
+            title={lang === 'fr' ? 'Retour en haut' : 'Back to top'}
+          >
+            {lang === 'fr' ? 'Retour en haut' : 'Back to top'}
+          </a>
         </div>
       </footer>
     </div>

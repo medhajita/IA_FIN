@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
-  TrendingUp, LayoutDashboard, ArrowUpDown,
+  LayoutDashboard, ArrowUpDown,
   Target, MessageSquare, Sun, Moon, LogOut, UserCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -107,9 +107,7 @@ export default function Navbar() {
 
           {/* Left — Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingUp size={16} color="#fff" strokeWidth={1.75} />
-            </div>
+            <img src="/favicon.svg" alt="" aria-hidden="true" style={{ width: 34, height: 34, display: 'block', filter: 'drop-shadow(0 8px 18px rgba(74,124,246,0.22))' }} />
             <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
               FinCoach
             </span>
