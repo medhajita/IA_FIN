@@ -1,28 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="fincoach-mark-title">
+  <title id="fincoach-mark-title">FinCoach</title>
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1a6dff"/>
-      <stop offset="100%" stop-color="#6e7bf2"/>
+    <linearGradient id="fc-mark-bg" x1="8" y1="6" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6EA0FF"/>
+      <stop offset="0.48" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#102A83"/>
     </linearGradient>
+    <linearGradient id="fc-mark-glow" x1="16" y1="10" x2="52" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="fc-soft-shadow" x="-18%" y="-18%" width="136%" height="136%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="7" stdDeviation="5" flood-color="#1E40AF" flood-opacity="0.26"/>
+    </filter>
   </defs>
 
-  <!-- Background square -->
-  <rect width="48" height="48" rx="13" fill="url(#g)"/>
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#fc-mark-bg)" filter="url(#fc-soft-shadow)"/>
+  <path d="M10 9.5C18.5 5.8 31.5 6.8 43 12.4C49.2 15.4 54 19.6 58 24.8V11C58 7.1 54.9 4 51 4H16C12.2 4 9 7.1 9 11V10L10 9.5Z" fill="url(#fc-mark-glow)"/>
 
-  <!-- Inner shine -->
-  <rect width="48" height="24" rx="13" fill="white" opacity="0.08"/>
+  <path d="M17.5 41L27 31.5L34.2 36.2L47.2 22.4" fill="none" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="17.5" cy="41" r="3.5" fill="#DBEAFE"/>
+  <circle cx="27" cy="31.5" r="3.5" fill="#DBEAFE"/>
+  <circle cx="34.2" cy="36.2" r="3.5" fill="#DBEAFE"/>
+  <circle cx="47.2" cy="22.4" r="4.2" fill="#5EF2B6"/>
 
-  <!-- Bar 1 – short -->
-  <rect x="7" y="30" width="8" height="13" rx="2.5" fill="white" opacity="0.65"/>
-  <!-- Bar 2 – medium -->
-  <rect x="19" y="21" width="8" height="22" rx="2.5" fill="white" opacity="0.82"/>
-  <!-- Bar 3 – tall -->
-  <rect x="31" y="13" width="8" height="30" rx="2.5" fill="white"/>
-
-  <!-- Trend line -->
-  <polyline points="11,28 23,19 35,11"
-    stroke="white" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
-  <!-- Arrow head -->
-  <polyline points="29.5,9 35,11 33,16.5"
-    stroke="white" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
+  <path d="M47.2 16.5V13.5M47.2 31.3V28.3M53.1 22.4H56.1M38.3 22.4H41.3" stroke="#CFFCE6" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M43.3 18.5L41.2 16.4M53.2 28.4L51.1 26.3M51.1 18.5L53.2 16.4M41.2 28.4L43.3 26.3" stroke="#CFFCE6" stroke-width="1.8" stroke-linecap="round" opacity="0.92"/>
 </svg>

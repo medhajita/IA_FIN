@@ -62,6 +62,11 @@ body {
   -webkit-appearance: none;
 }
 
+/* Ensure content is never hidden behind fixed mobile bottom nav */
+@media (max-width: 767px) {
+  main { padding-bottom: 90px !important; }
+}
+
 .section-label {
   font-size: 11px;
   font-weight: 600;
@@ -271,9 +276,21 @@ body {
   .goals-header { gap: 10px !important; }
   .goals-header-title { white-space: nowrap !important; }
 
-  .goals-page-header { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .goals-page-shell { padding: 24px 12px 56px !important; }
+  .goals-page-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+  }
+  .goals-actions-row {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+  }
 
-  .dashboard-mobile-header { flex-direction: column !important; align-items: center !important; gap: 20px !important; }
+  .dashboard-mobile-header { flex-direction: column !important; align-items: center !important; gap: 32px !important; }
   .dashboard-period-selector { width: 100% !important; }
 
   .transactions-header h1 {

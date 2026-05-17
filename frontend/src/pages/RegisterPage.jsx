@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { TrendingUp, Mail, Lock, User, Phone, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, User, Phone, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../services/api';
 import { useI18n } from '../context/I18nContext';
 
@@ -43,12 +43,7 @@ export default function RegisterPage() {
     }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 16, background: 'var(--purple)',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
-          }}>
-            <User size={26} color="#fff" strokeWidth={1.75} />
-          </div>
+          <img src="/favicon.svg" alt="" aria-hidden="true" style={{ width: 56, height: 56, display: 'inline-block', marginBottom: 16, filter: 'drop-shadow(0 12px 28px rgba(74,124,246,0.24))' }} />
           <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px', margin: '0 0 6px' }}>
             {t('register.title')}
           </h1>
