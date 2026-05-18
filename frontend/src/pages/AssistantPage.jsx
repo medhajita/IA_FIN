@@ -1,231 +1,312 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, BrainCircuit } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Bot,
+  CircleDollarSign,
+  LayoutList,
+  LineChart,
+  Mic,
+  Paperclip,
+  PiggyBank,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+  Zap,
+} from 'lucide-react';
 import { askQuestion } from '../services/chatbotService';
-import IconBox from '../components/ui/IconBox';
-import { useAuth } from '../context/AuthContext';
+import { getByCategory, getSummary } from '../services/dashboardService';
+import { getGoals } from '../services/goalService';
+import { Badge, Button, Card, CardHead, Page, PageHeader, Progress } from '../components/fincoach/FinCoachUI';
+import { useFmt } from '../context/CurrencyContext';
 import { useI18n } from '../context/I18nContext';
 
-function getInitials(name) {
-  if (!name) return '?';
-  return name.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+function clamp(value, min = 0, max = 100) {
+  return Math.max(min, Math.min(max, Number(value) || 0));
+}
+
+function goalProgress(goal) {
+  const current = Number(goal?.current_amount || goal?.saved_amount || 0);
+  const target = Number(goal?.target_amount || 0);
+  return target > 0 ? Math.round((current / target) * 100) : 0;
 }
 
 export default function AssistantPage() {
-  const { user } = useAuth();
-  const { t } = useI18n();
-  const [messages, setMessages] = useState(() => [{
-    role: 'bot',
-    text: null,
-    isWelcome: true,
-    timestamp: new Date().toISOString(),
-  }]);
+  const fmt = useFmt();
+  const { lang, t } = useI18n();
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [context, setContext] = useState({
+    summary: { totalIncome: 0, totalExpenses: 0, balance: 0, savingsRate: 0, transactionCount: 0 },
+    categories: [],
+    goals: [],
+  });
   const bottomRef = useRef(null);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => {
+    setMessages([
+      { role: 'bot', text: t('assistant.botWelcome1') },
+      { role: 'bot', text: t('assistant.botWelcome2') },
+    ]);
+  }, [lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const send = async (text) => {
-    const q = text || input;
-    if (!q.trim() || loading) return;
+  useEffect(() => {
+    let alive = true;
+    Promise.all([getSummary(), getByCategory(), getGoals()])
+      .then(([sumRes, catRes, goalsRes]) => {
+        if (!alive) return;
+        setContext({
+          summary: sumRes.data?.data || {},
+          categories: catRes.data?.data?.categories || [],
+          goals: goalsRes.data?.data || [],
+        });
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
+  const situation = useMemo(() => {
+    const income = Number(context.summary.totalIncome || 0);
+    const expenses = Number(context.summary.totalExpenses || 0);
+    const balance = Number(context.summary.balance || income - expenses);
+    const savingsRate = Number(context.summary.savingsRate || (income > 0 ? ((income - expenses) / income) * 100 : 0));
+    const health = clamp(Math.round(42 + savingsRate * 1.35 + (balance > 0 ? 12 : -12)));
+    const activeCategories = context.categories.filter((item) => Number(item.total || 0) > 0);
+    const topCategory = activeCategories[0] || null;
+    const mainGoal = [...context.goals].sort((a, b) => goalProgress(a) - goalProgress(b))[0] || null;
+    const remainingGoal = mainGoal ? Math.max(0, Number(mainGoal.target_amount || 0) - Number(mainGoal.current_amount || 0)) : 0;
+    const pressure = income > 0 ? clamp(Math.round((expenses / income) * 100)) : 0;
+
+    return {
+      income,
+      expenses,
+      balance,
+      savingsRate,
+      health,
+      pressure,
+      activeCategories,
+      topCategory,
+      mainGoal,
+      remainingGoal,
+      transactionCount: Number(context.summary.transactionCount || 0),
+    };
+  }, [context]);
+
+  const quickActions = useMemo(() => [
+    {
+      label: t('assistant.analyzeSpending'),
+      icon: LineChart,
+      prompt: `Analyze my current spending. Income is ${fmt(situation.income)}, expenses are ${fmt(situation.expenses)}, and my top category is ${situation.topCategory?.categoryName || 'unknown'}.`,
+    },
+    {
+      label: t('assistant.explainTransactions'),
+      icon: CircleDollarSign,
+      prompt: `Explain the financial situation from my ${situation.transactionCount} transactions and the category pressure.`,
+    },
+    {
+      label: t('assistant.createSavingPlan'),
+      icon: PiggyBank,
+      prompt: `Create a saving plan. My balance is ${fmt(situation.balance)} and my main goal is ${situation.mainGoal?.title || 'not selected yet'}.`,
+    },
+    {
+      label: t('assistant.reduceRisk'),
+      icon: ShieldCheck,
+      prompt: `What financial risk should I reduce first? My expense pressure is ${situation.pressure}% of income.`,
+    },
+    {
+      label: t('assistant.topCategories'),
+      icon: LayoutList,
+      prompt: `What are my biggest spending categories this month? Break them down with amounts and percentages.`,
+    },
+    {
+      label: t('assistant.whatChanged'),
+      icon: Zap,
+      prompt: `What changed this month in my finances? Income is ${fmt(situation.income)}, expenses are ${fmt(situation.expenses)}, savings rate is ${situation.savingsRate.toFixed(1)}%.`,
+    },
+    {
+      label: t('assistant.improveBalance'),
+      icon: TrendingUp,
+      prompt: `How can I improve my monthly balance? Currently ${fmt(situation.balance)} with ${situation.pressure}% expense pressure on income.`,
+    },
+    {
+      label: t('assistant.goalProgress'),
+      icon: Target,
+      prompt: `How is my goal "${situation.mainGoal?.title || 'main goal'}" going? I still need ${fmt(situation.remainingGoal)} to reach it.`,
+    },
+    {
+      label: t('assistant.budgetHealth'),
+      icon: Wallet,
+      prompt: `Give me a full budget health check. Income ${fmt(situation.income)}, expenses ${fmt(situation.expenses)}, savings rate ${situation.savingsRate.toFixed(1)}%, ${situation.activeCategories.length} active categories.`,
+    },
+  ], [situation, fmt, t]);
+
+  const insightCards = useMemo(() => {
+    const topCategoryName = situation.topCategory?.categoryName || t('assistant.topCategory');
+    const topCategoryShare = Number(situation.topCategory?.percentage || 0);
+    const goalTitle = situation.mainGoal?.title || t('goals.createFirst');
+    return [
+      {
+        title: situation.balance >= 0 ? t('assistant.positiveCashflow') : t('assistant.cashflowPressure'),
+        text: situation.balance >= 0
+          ? t('assistant.positiveCashflowText', { amount: fmt(situation.balance) })
+          : t('assistant.negativeCashflowText', { amount: fmt(Math.abs(situation.balance)) }),
+        tone: situation.balance >= 0 ? 'green' : 'red',
+        icon: situation.balance >= 0 ? ArrowUpRight : ArrowDownRight,
+      },
+      {
+        title: t('assistant.topCategory'),
+        text: t('assistant.topCatText', { category: topCategoryName, pct: topCategoryShare.toFixed(2) }),
+        tone: topCategoryShare > 40 ? 'orange' : 'blue',
+        icon: TrendingDown,
+      },
+      {
+        title: t('assistant.goalFocus'),
+        text: situation.mainGoal ? t('assistant.goalNeedsText', { goal: goalTitle, amount: fmt(situation.remainingGoal) }) : t('assistant.noActiveGoalText'),
+        tone: 'purple',
+        icon: Target,
+      },
+    ];
+  }, [situation, fmt, t]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading]);
+
+  async function send(text = input) {
+    const value = text.trim();
+    if (!value || loading) return;
     setInput('');
-    setMessages((prev) => [...prev, { role: 'user', text: q, timestamp: new Date().toISOString() }]);
+    setMessages((prev) => [...prev, { role: 'user', text: value }]);
     setLoading(true);
     try {
-      const res = await askQuestion(q);
-      setMessages((prev) => [...prev, { role: 'bot', text: res.data.answer, timestamp: res.data.timestamp }]);
-    } catch {
-      setMessages((prev) => [...prev, { role: 'bot', text: t('assistant.error'), timestamp: new Date().toISOString() }]);
-    } finally { setLoading(false); }
-  };
-
-  const fmtTime = (iso) => new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      const res = await askQuestion(value, lang);
+      setMessages((prev) => [...prev, { role: 'bot', text: res.data.answer }]);
+    } catch (err) {
+      const msg = err?.response?.data?.error || t('assistant.botError');
+      setMessages((prev) => [...prev, { role: 'bot', text: msg }]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    /*
-     * Fixed overlay: top = navbar (56px), bottom = 0 desktop / 80px mobile (tab bar).
-     * This makes the chat truly full-height with no unused space.
-     */
-    <div
-      className="top-0 md:top-[56px] md:bottom-0 bottom-[68px]"
-      style={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        background: 'var(--bg-secondary)',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {/* Centered column — fills the fixed overlay */}
-      <div
-        className="px-3 md:px-7 pt-3 md:pt-5 pb-3 md:pb-4"
-        style={{
-          maxWidth: 1100,
-          width: '100%',
-          margin: '0 auto',
-          flex: 1,
-          minHeight: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-        }}
-      >
+    <Page style={{ flex: 1, minHeight: 0 }}>
+      <PageHeader title={t('assistant.title')} />
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{
-              width: 46, height: 46, borderRadius: 13, flexShrink: 0,
-              background: 'linear-gradient(135deg, #5856D6 0%, #7B79F0 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 16px rgba(88,86,214,0.30)',
-            }}>
-              <BrainCircuit size={22} color="#fff" strokeWidth={1.75} />
-            </div>
+      <div className="fc-assistant-layout">
+        <Card className="fc-assistant-side">
+          <div className="fc-ai-command-card">
+            <span style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(118,87,255,0.15)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fc-purple)', flexShrink: 0 }}><Sparkles size={20} /></span>
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px', margin: 0 }}>
-                {t('assistant.title')}
-              </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, margin: '3px 0 0' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--green-text)' }}>{t('assistant.online')}</span>
-              </div>
+              <strong>{t('assistant.commandCenter')}</strong>
+              <span>{t('assistant.transactionsConnected', { count: situation.transactionCount })}</span>
             </div>
           </div>
-        </div>
 
-        {/* Messages — takes all remaining vertical space, scrolls internally */}
-        <div style={{
-          flex: 1,
-          minHeight: 0,
-          overflowY: 'auto',
-          background: 'var(--bg-primary)',
-          borderRadius: 'var(--radius-card)',
-          border: '1px solid var(--border)',
-          boxShadow: 'var(--card-shadow)',
-          padding: '16px 16px 12px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 18,
-        }}>
-          {messages.map((msg, i) => (
-            <div key={i} style={{
-              display: 'flex', alignItems: 'flex-end', gap: 10,
-              flexDirection: msg.role === 'user' ? 'row-reverse' : 'row',
-            }}>
-              {msg.role === 'bot' ? (
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                  background: 'var(--purple-bg)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Bot size={15} color="var(--purple)" strokeWidth={1.75} />
-                </div>
-              ) : (
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                  background: 'var(--blue)', color: '#fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700, letterSpacing: '0.03em', userSelect: 'none',
-                }}>
-                  {getInitials(user?.name)}
-                </div>
-              )}
-
-              <div style={{
-                flex: 1, minWidth: 0,
-                display: 'flex', flexDirection: 'column', gap: 3,
-                alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              }}>
-                <div className={msg.role === 'bot' ? 'bubble-bot' : 'bubble-user'}>
-                  {msg.isWelcome ? t('assistant.welcome') : msg.text}
-                </div>
-                <span style={{ fontSize: 11, color: 'var(--text-tertiary)', paddingLeft: 2, paddingRight: 2 }}>
-                  {fmtTime(msg.timestamp)}
-                </span>
-              </div>
-            </div>
-          ))}
-
-          {loading && (
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                background: 'var(--purple-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Bot size={15} color="var(--purple)" strokeWidth={1.75} />
-              </div>
-              <div className="bubble-bot" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                {[0, 150, 300].map((d) => (
-                  <span key={d} style={{
-                    width: 6, height: 6, background: 'var(--text-tertiary)', borderRadius: '50%',
-                    animation: `bounce 1.2s ease-in-out ${d}ms infinite`,
-                  }} />
-                ))}
-              </div>
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-
-        {/* Suggestions — shown only before first reply */}
-        {messages.length === 1 && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flexShrink: 0 }}>
-            {[t('assistant.s0'), t('assistant.s1'), t('assistant.s2'), t('assistant.s3')].map((s) => (
-              <button key={s} onClick={() => send(s)} style={{
-                fontSize: 12, fontWeight: 500, padding: '8px 12px',
-                background: 'var(--purple-bg)', color: 'var(--purple-text)',
-                border: '1px solid var(--purple)', borderRadius: 'var(--radius-tag)',
-                cursor: 'pointer', transition: 'opacity 0.15s',
-                textAlign: 'left', lineHeight: 1.4,
-              }}>
-                {s}
+          <CardHead title={t('assistant.smartActions')} subtitle={t('assistant.generatedFromData')} />
+          <div className="fc-ai-action-list">
+            {quickActions.map(({ label, icon: Icon, prompt }) => (
+              <button key={label} type="button" onClick={() => send(prompt)} className="fc-ai-action">
+                <span><Icon size={17} /></span>
+                <strong>{label}</strong>
               </button>
             ))}
           </div>
-        )}
+        </Card>
 
-        {/* Input — always at bottom, never scrolls away */}
-        <div style={{
-          flexShrink: 0,
-          background: 'var(--bg-primary)',
-          borderRadius: 'var(--radius-card)',
-          border: '1px solid var(--border)',
-          boxShadow: 'var(--card-shadow)',
-          padding: '12px 16px',
-        }}>
-          <form onSubmit={(e) => { e.preventDefault(); send(); }} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <input
-              type="text" value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={t('assistant.placeholder')}
-              disabled={loading}
-              className="chat-input"
-              style={{
-                flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                fontSize: 14, color: 'var(--text-primary)', fontFamily: 'inherit',
-              }}
-            />
-            <button type="submit" disabled={loading || !input.trim()} style={{
-              width: 38, height: 38, borderRadius: 'var(--radius-sm)', flexShrink: 0,
-              background: 'var(--blue)', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              opacity: loading || !input.trim() ? 0.4 : 1, transition: 'opacity 0.15s',
-            }}>
-              <Send size={15} color="#fff" strokeWidth={1.75} />
-            </button>
+        <Card className="fc-chat-panel fc-chat-panel-premium">
+          <div className="fc-chat-head">
+            <div>
+              <span style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(47,107,255,0.15)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fc-blue)', flexShrink: 0 }}><Bot size={20} /></span>
+              <div>
+                <h2>FinCoach IA</h2>
+                <p>{t('assistant.pageSubtitle')}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="fc-chat-situation-row">
+            <div><span>{t('assistant.balanceLabel')}</span><strong>{fmt(situation.balance)}</strong></div>
+            <div><span>{t('assistant.savingsLabel')}</span><strong>{situation.savingsRate.toFixed(1)}%</strong></div>
+            <div><span>{t('assistant.pressureLabel')}</span><strong>{situation.pressure}%</strong></div>
+          </div>
+
+          <div className="fc-chat-body">
+            {messages.map((message, index) => (
+              <div key={`${message.role}-${index}`} className={`fc-message fc-message-${message.role}`}>
+                {message.text}
+              </div>
+            ))}
+            {loading && (
+              <div className="fc-typing">
+                <Bot size={16} />
+                {t('assistant.typing')}
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+
+          <div className="fc-suggestion-row">
+            {[
+              t('assistant.suggestQ1'),
+              t('assistant.suggestQ2'),
+              t('assistant.suggestQ3'),
+              lang === 'fr' ? "Creer un plan d'epargne" : 'Create a saving plan',
+            ].map((question) => (
+              <button key={question} type="button" onClick={() => send(question)}>{question}</button>
+            ))}
+          </div>
+
+          <form onSubmit={(e) => { e.preventDefault(); send(); }} className="fc-chat-input-row">
+            <button type="button" className="fc-icon-button" aria-label="Upload"><Paperclip size={18} /></button>
+            <button type="button" className="fc-icon-button" aria-label="Voice"><Mic size={18} /></button>
+            <input className="fc-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder={t('assistant.placeholder')} />
+            <Button aria-label="Send"><Send size={16} /></Button>
           </form>
+        </Card>
+
+        <div className="fc-ai-right-rail">
+          <Card>
+            <CardHead title={t('assistant.situationDashboard')} subtitle={t('assistant.liveFromData')} />
+            <div className="fc-list">
+              {[
+                { label: t('assistant.monthlyIncome'), value: fmt(situation.income), icon: TrendingUp, color: 'var(--fc-green)' },
+                { label: t('assistant.monthlyExpenses'), value: fmt(situation.expenses), icon: TrendingDown, color: 'var(--fc-red)' },
+                { label: t('assistant.currentBalance'), value: fmt(situation.balance), icon: Wallet, color: situation.balance >= 0 ? 'var(--fc-blue)' : 'var(--fc-red)' },
+                { label: t('assistant.mainGoal'), value: situation.mainGoal?.title || t('assistant.noGoalYet'), icon: Target, color: 'var(--fc-purple)' },
+              ].map(({ label, value, icon: Icon, color }) => (
+                <div className="fc-list-item" key={label}>
+                  <span className="fc-item-icon" style={{ color }}><Icon size={18} /></span>
+                  <div><strong>{value}</strong><span>{label}</span></div>
+                </div>
+              ))}
+            </div>
+            <div className="fc-health-panel">
+              <div className="fc-mini-row"><span>{t('assistant.financialHealth')}</span><strong>{situation.health}/100</strong></div>
+              <Progress value={situation.health} />
+            </div>
+          </Card>
+
+          <Card>
+            <CardHead title={t('assistant.situationSignals')} />
+            <div className="fc-list">
+              {insightCards.map(({ title, text, tone, icon: Icon }) => (
+                <div className="fc-list-item" key={title}>
+                  <span className="fc-item-icon" style={{ color: `var(--fc-${tone})` }}><Icon size={18} /></span>
+                  <div><strong>{title}</strong><span>{text}</span></div>
+                  <Badge tone={tone}>{t('assistant.live')}</Badge>
+                </div>
+              ))}
+            </div>
+          </Card>
+
         </div>
-
       </div>
-
-      <style>{`
-        @keyframes bounce {
-          0%, 60%, 100% { transform: translateY(0); }
-          30% { transform: translateY(-5px); }
-        }
-      `}</style>
-    </div>
+    </Page>
   );
 }

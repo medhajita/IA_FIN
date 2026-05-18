@@ -32,9 +32,17 @@ if (process.env.NODE_ENV !== 'production') {
   app.use('/api/demo', demoRoutes);
 }
 
+const { Category } = require('./models');
+
 sequelize.authenticate()
-  .then(() => console.log('✅ Connected to Supabase PostgreSQL'))
-  .catch((err) => console.error('❌ DB connection error:', err));
+  .then(async () => {
+    console.log('Connected to Supabase PostgreSQL');
+    await Category.findOrCreate({
+      where: { id: 10 },
+      defaults: { id: 10, name: 'Épargne', type: 'expense', color: '#7657ff' },
+    });
+  })
+  .catch((err) => console.error('DB connection error:', err));
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

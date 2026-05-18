@@ -76,6 +76,23 @@ function generateRecommendations(transactions, lastMonthTransportTotal = 0) {
     });
   }
 
+  // Rule 7 — Moderate savings, push toward 20%
+  if (totalIncome > 0 && savingsRate >= 10 && savingsRate < 20) {
+    const pct = Math.round(savingsRate);
+    recs.push({
+      message: `Votre taux d'épargne est de ${pct}% ce mois-ci. Excellent début ! Essayez d'atteindre 20% en réduisant une dépense non essentielle.`,
+      priority: 'medium',
+    });
+  }
+
+  // Fallback — ensure at least 3 recommendations
+  if (recs.length < 3 && totalIncome > 0) {
+    recs.push({
+      message: `Passez en revue vos dépenses régulièrement pour identifier les économies potentielles. Chaque euro mis de côté aujourd'hui compte pour demain.`,
+      priority: 'low',
+    });
+  }
+
   return recs
     .sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
     .slice(0, 4);

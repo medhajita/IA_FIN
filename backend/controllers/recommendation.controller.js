@@ -1,67 +1,95 @@
 const { Op } = require('sequelize');
 const { Transaction, Recommendation } = require('../models');
-const { generateRecommendations } = require('../utils/recommendationEngine');
-const { chatCompletion } = require('../utils/hfClient');
+const { chatCompletion } = require('../utils/aiClient');
 
 const fmt = (n) =>
   new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n || 0);
 
-async function enrichWithAI(recs, financialSummary) {
-  if (recs.length === 0) return recs;
-  try {
-    const items = recs
-      .map((r, i) => `ITEM_${i + 1} [${r.priority}]: ${r.message}`)
-      .join('\n');
+async function generateAIRecommendations(currentTxns, lastMonthTransportTotal) {
+  const income = currentTxns.filter((t) => t.type === 'income').reduce((s, t) => s + parseFloat(t.amount), 0);
+  const expenses = currentTxns.filter((t) => t.type === 'expense').reduce((s, t) => s + parseFloat(t.amount), 0);
+  const balance = income - expenses;
+  const savingsRate = income > 0 ? ((balance / income) * 100).toFixed(1) : '0.0';
 
-    const systemPrompt = `You are a helpful French financial advisor. You MUST respond ONLY in French. Never use Chinese, English, or any other language. Output ONLY valid JSON, no other text.`;
+  const byCategory = {};
+  currentTxns.filter((t) => t.type === 'expense').forEach((t) => {
+    const cid = t.category_id || 'unknown';
+    byCategory[cid] = (byCategory[cid] || 0) + parseFloat(t.amount);
+  });
+  const catLines = Object.entries(byCategory)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([cid, total]) => `- category_id=${cid}: ${fmt(total)}`)
+    .join('\n');
 
-    const userPrompt = `Rewrite each financial recommendation below in warm, natural French (1-2 sentences each). Keep the same priority values exactly.
+  const summary = `MONTHLY DATA
+Income: ${fmt(income)}
+Expenses: ${fmt(expenses)}
+Balance: ${fmt(balance)}
+Savings rate: ${savingsRate}%
+Last month transport spend: ${fmt(lastMonthTransportTotal)}
+Top expense categories this month:
+${catLines || '(none)'}`;
 
-Financial summary: ${financialSummary}
+  const systemPrompt = `You are a French financial coach. Generate exactly 3 actionable, personalised recommendations based on the user's real data. Output strictly a JSON array. Each item has "message" (1-2 sentences in French, warm, specific to the numbers) and "priority" (one of: "high", "medium", "low"). No markdown, no commentary, only valid JSON.`;
 
-Recommendations to rewrite:
-${items}
+  const userPrompt = `${summary}
 
-Respond with ONLY a JSON array with exactly ${recs.length} objects. Example format:
-[{"message":"Votre texte ici.","priority":"high"}]
+Respond with exactly this format and nothing else:
+[
+  {"message": "...", "priority": "high|medium|low"},
+  {"message": "...", "priority": "high|medium|low"},
+  {"message": "...", "priority": "high|medium|low"}
+]`;
 
-JSON:`;
+  const raw = await chatCompletion(
+    [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+    { maxTokens: 600, temperature: 0.5 }
+  );
 
-    const raw = await chatCompletion(
-      [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      { maxTokens: 600, temperature: 0.4 }
-    );
+  const cleaned = raw.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
+  const match = cleaned.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('AI response not parseable as JSON array');
+  const parsed = JSON.parse(match[0]);
+  if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('AI returned empty recommendations');
 
-    const jsonMatch = raw.replace(/```[a-z]*\n?/g, '').match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return recs;
-    const enriched = JSON.parse(jsonMatch[0]);
-    if (!Array.isArray(enriched) || enriched.length === 0) return recs;
-
-    // Merge: use AI message where valid French, fall back to template otherwise
-    return recs.map((orig, i) => {
-      const ai = enriched[i];
-      const msg = ai?.message && !/[一-鿿]/.test(ai.message) ? ai.message : orig.message;
-      return { message: msg, priority: orig.priority };
-    });
-  } catch (err) {
-    console.error('[enrichWithAI error]', err.message);
-    return recs;
-  }
+  return parsed
+    .filter((r) => r && typeof r.message === 'string' && r.message.trim().length > 0)
+    .map((r) => ({
+      message: r.message.trim(),
+      priority: ['high', 'medium', 'low'].includes(r.priority) ? r.priority : 'medium',
+    }));
 }
 
 async function getRecommendations(req, res) {
   try {
     const userId = req.user.id;
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const firstDay = `${year}-${month}-01`;
-    const lastDay = new Date(year, now.getMonth() + 1, 0).toISOString().slice(0, 10);
 
-    const lastMonthDate = new Date(year, now.getMonth() - 1, 1);
+    const latest = await Transaction.findOne({
+      where: { user_id: userId },
+      order: [['date', 'DESC']],
+      attributes: ['date'],
+      raw: true,
+    });
+
+    let year, monthIdx;
+    if (latest) {
+      const [y, m] = latest.date.slice(0, 7).split('-').map(Number);
+      year = y;
+      monthIdx = m - 1;
+    } else {
+      const now = new Date();
+      year = now.getFullYear();
+      monthIdx = now.getMonth();
+    }
+    const month = String(monthIdx + 1).padStart(2, '0');
+    const firstDay = `${year}-${month}-01`;
+    const lastDay = new Date(year, monthIdx + 1, 0).toISOString().slice(0, 10);
+
+    const lastMonthDate = new Date(year, monthIdx - 1, 1);
     const lmYear = lastMonthDate.getFullYear();
     const lmMonth = String(lastMonthDate.getMonth() + 1).padStart(2, '0');
     const lmFirst = `${lmYear}-${lmMonth}-01`;
@@ -78,16 +106,21 @@ async function getRecommendations(req, res) {
       }),
     ]);
 
+    if (currentTxns.length === 0) {
+      return res.status(200).json({ data: { recommendations: [] } });
+    }
+
     const lastMonthTransportTotal = lastMonthTransport.reduce((s, t) => s + parseFloat(t.amount), 0);
-    const ruleRecs = generateRecommendations(currentTxns, lastMonthTransportTotal);
 
-    // Build financial summary for AI context
-    const income = currentTxns.filter((t) => t.type === 'income').reduce((s, t) => s + parseFloat(t.amount), 0);
-    const expenses = currentTxns.filter((t) => t.type === 'expense').reduce((s, t) => s + parseFloat(t.amount), 0);
-    const savingsRate = income > 0 ? (((income - expenses) / income) * 100).toFixed(1) : 0;
-    const financialSummary = `Revenus: ${fmt(income)} | Dépenses: ${fmt(expenses)} | Solde: ${fmt(income - expenses)} | Taux d'épargne: ${savingsRate}%`;
-
-    const recs = await enrichWithAI(ruleRecs, financialSummary);
+    let recs;
+    try {
+      recs = await generateAIRecommendations(currentTxns, lastMonthTransportTotal);
+    } catch (aiErr) {
+      console.error('[recommendations:ai-failed]', aiErr?.message);
+      return res.status(503).json({
+        error: 'AI service unavailable. Recommendations could not be generated. Please try again shortly.',
+      });
+    }
 
     await Recommendation.destroy({ where: { user_id: userId } });
     if (recs.length > 0) {

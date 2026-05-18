@@ -1,18 +1,26 @@
-import { useState, useRef, useEffect } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, ArrowUpDown,
-  Target, MessageSquare, Sun, Moon, LogOut, UserCircle,
+  ArrowUpDown,
+  ChevronDown,
+  Languages,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  Moon,
+  Sun,
+  Target,
+  UserCircle,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useI18n } from '../context/I18nContext';
 
 const NAV_KEYS = [
-  { to: '/dashboard',    tKey: 'nav.dashboard',    icon: LayoutDashboard },
-  { to: '/transactions', tKey: 'nav.transactions',  icon: ArrowUpDown },
-  { to: '/goals',        tKey: 'nav.goals',         icon: Target },
-  { to: '/assistant',    tKey: 'nav.assistant',     icon: MessageSquare },
+  { to: '/dashboard', tKey: 'nav.dashboard', icon: LayoutDashboard },
+  { to: '/transactions', tKey: 'nav.transactions', icon: ArrowUpDown },
+  { to: '/goals', tKey: 'nav.goals', icon: Target },
+  { to: '/assistant', tKey: 'nav.assistant', icon: MessageSquare },
 ];
 
 function getDisplayName(user) {
@@ -25,21 +33,11 @@ function getDisplayName(user) {
 function getInitials(user) {
   const name = getDisplayName(user);
   if (!name) return '?';
-  return name.split(' ').filter(Boolean).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  return name.split(' ').filter(Boolean).map((word) => word[0]).slice(0, 2).join('').toUpperCase();
 }
 
-function Avatar({ user, size = 28, fontSize = 11 }) {
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: '50%',
-      background: 'var(--blue)', color: '#fff',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize, fontWeight: 700, letterSpacing: '0.03em', flexShrink: 0,
-      userSelect: 'none',
-    }}>
-      {getInitials(user)}
-    </div>
-  );
+function Avatar({ user }) {
+  return <span className="premium-avatar">{getInitials(user)}</span>;
 }
 
 export default function Navbar() {
@@ -48,20 +46,24 @@ export default function Navbar() {
   const { lang, setLang, t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
-
   const [desktopDrop, setDesktopDrop] = useState(false);
-  const [mobileDrop, setMobileDrop]   = useState(false);
+  const [mobileDrop, setMobileDrop] = useState(false);
   const desktopDropRef = useRef(null);
-  const mobileDropRef  = useRef(null);
+  const mobileDropRef = useRef(null);
 
   useEffect(() => {
     function handler(e) {
       if (desktopDropRef.current && !desktopDropRef.current.contains(e.target)) setDesktopDrop(false);
-      if (mobileDropRef.current  && !mobileDropRef.current.contains(e.target))  setMobileDrop(false);
+      if (mobileDropRef.current && !mobileDropRef.current.contains(e.target)) setMobileDrop(false);
     }
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  function isActive(to) {
+    if (to === '/dashboard') return location.pathname === '/dashboard';
+    return location.pathname.startsWith(to);
+  }
 
   function handleLogout() {
     setDesktopDrop(false);
@@ -76,298 +78,158 @@ export default function Navbar() {
     navigate('/profile');
   }
 
-  function isActive(to) {
-    if (to === '/dashboard') return location.pathname === '/dashboard';
-    return location.pathname.startsWith(to);
+  function toggleLang() {
+    setLang(lang === 'fr' ? 'en' : 'fr');
   }
 
-  const langSegment = {
-    wrap: {
-      display: 'flex', alignItems: 'center',
-      background: 'var(--bg-tertiary)',
-      borderRadius: 20, padding: 3, gap: 2,
-      border: '1px solid var(--border)',
-    },
-    btn: (active) => ({
-      fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
-      padding: '4px 11px', borderRadius: 16, border: 'none',
-      background: active ? 'var(--blue)' : 'transparent',
-      color: active ? '#fff' : 'var(--text-secondary)',
-      cursor: 'pointer', transition: 'all 0.18s',
-      boxShadow: active ? '0 1px 4px rgba(74,124,246,0.30)' : 'none',
-      lineHeight: 1,
-    }),
-  };
+  const userName = getDisplayName(user);
 
   return (
     <>
-      {/* ══ DESKTOP TOP NAV (md+) ═════════════════ */}
-      <nav className="top-nav hidden md:block">
-        <div style={{ width: 'min(1680px, calc(100% - clamp(48px, 8vw, 144px)))', margin: '0 auto', position: 'relative', display: 'flex', alignItems: 'center', height: 56 }}>
-
-          {/* Left — Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-            <img src="/favicon.svg" alt="" aria-hidden="true" style={{ width: 34, height: 34, display: 'block', filter: 'drop-shadow(0 8px 18px rgba(74,124,246,0.22))' }} />
-            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
-              FinCoach
-            </span>
+      <nav className="top-nav premium-desktop-nav">
+        <div className="premium-top-nav-inner">
+          <div className="premium-brand">
+            <img src="/logo.svg" alt="" aria-hidden="true" />
+            <span>FinCoach</span>
           </div>
 
-          {/* Center — Nav links */}
-          <div style={{
-            position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-            display: 'flex', alignItems: 'center', gap: 2,
-          }}>
-            {NAV_KEYS.map(({ to, tKey, icon: Icon }) => {
-              const active = isActive(to);
-              return (
-                <NavLink key={to} to={to} style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '6px 13px', borderRadius: 'var(--radius-sm)',
-                  fontSize: 13, fontWeight: 500, textDecoration: 'none',
-                  color: active ? 'var(--blue)' : 'var(--text-secondary)',
-                  background: active ? 'var(--blue-bg)' : 'transparent',
-                  transition: 'all 0.15s', whiteSpace: 'nowrap',
-                }}>
-                  <Icon size={14} strokeWidth={1.75} />
-                  {t(tKey)}
-                </NavLink>
-              );
-            })}
+          <div className="premium-nav-links">
+            {NAV_KEYS.map(({ to, tKey, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={`premium-nav-link ${isActive(to) ? 'active' : ''}`}
+              >
+                <Icon size={15} strokeWidth={2} />
+                <span>{t(tKey)}</span>
+              </NavLink>
+            ))}
           </div>
 
-          {/* Right — Lang toggle + Theme toggle + Avatar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0 }}>
-
-            {/* Lang switcher */}
-            <div style={langSegment.wrap}>
-              <button onClick={() => setLang('fr')} style={langSegment.btn(lang === 'fr')}>FR</button>
-              <button onClick={() => setLang('en')} style={langSegment.btn(lang === 'en')}>EN</button>
-            </div>
-
-            {/* Theme toggle */}
-            <button onClick={toggle} style={{
-              background: 'none', border: 'none', padding: 4,
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              {theme === 'dark'
-                ? <Sun  size={22} strokeWidth={1.75} color="var(--orange)" />
-                : <Moon size={22} strokeWidth={1.75} color="var(--blue)"   />}
+          <div className="premium-nav-actions">
+            <button
+              type="button"
+              className="premium-icon-button"
+              onClick={toggleLang}
+              aria-label="Changer la langue"
+              title={lang === 'fr' ? 'FR / EN' : 'EN / FR'}
+            >
+              <Languages size={16} strokeWidth={2} />
+              <span>{lang.toUpperCase()}</span>
+            </button>
+            <button
+              type="button"
+              className="premium-icon-button"
+              onClick={toggle}
+              aria-label={theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}
+              title={theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}
+            >
+              {theme === 'dark' ? <Sun size={17} strokeWidth={2} /> : <Moon size={17} strokeWidth={2} />}
             </button>
 
-            {/* Avatar dropdown */}
             <div ref={desktopDropRef} style={{ position: 'relative' }}>
               <button
-                onClick={() => setDesktopDrop((v) => !v)}
-                style={{ display: 'flex', alignItems: 'center', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                type="button"
+                className="premium-profile-button"
+                onClick={() => setDesktopDrop((value) => !value)}
+                aria-expanded={desktopDrop}
+                aria-label={t('nav.myProfile')}
               >
-                <Avatar user={user} size={32} fontSize={12} />
+                <span>{userName || t('nav.profile')}</span>
+                <Avatar user={user} />
+                <ChevronDown size={15} strokeWidth={2} />
               </button>
 
               {desktopDrop && (
-                <div style={{
-                  position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                  background: 'var(--bg-primary)', border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-card)', minWidth: 220,
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.14)', zIndex: 200, overflow: 'hidden',
-                }}>
-                  <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <Avatar user={user} size={40} fontSize={15} />
-                      <div style={{ minWidth: 0 }}>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {getDisplayName(user)}
-                        </p>
-                        <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {user?.email}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ padding: 4 }}>
-                    <button
-                      onClick={handleProfile}
-                      style={{
-                        width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '9px 12px', background: 'none', border: 'none',
-                        borderRadius: 10, cursor: 'pointer',
-                        fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
-                        textAlign: 'left', transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                    >
-                      <UserCircle size={14} strokeWidth={1.75} />
-                      {t('nav.myProfile')}
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      style={{
-                        width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '9px 12px', background: 'none', border: 'none',
-                        borderRadius: 10, cursor: 'pointer',
-                        fontSize: 13, fontWeight: 500, color: 'var(--red-text)',
-                        textAlign: 'left', transition: 'background 0.15s',
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = 'var(--red-bg)'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                    >
-                      <LogOut size={14} strokeWidth={1.75} />
-                      {t('nav.signOut')}
-                    </button>
-                  </div>
-                </div>
+                <ProfileMenu
+                  user={user}
+                  t={t}
+                  onProfile={handleProfile}
+                  onLogout={handleLogout}
+                />
               )}
             </div>
           </div>
         </div>
       </nav>
 
-      {/* ══ MOBILE BOTTOM TAB BAR (<md) ═══════════ */}
-      <div className="md:hidden" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100, background: 'var(--bg-secondary)', paddingBottom: 10 }}>
-
+      <nav className="premium-mobile-nav" ref={mobileDropRef}>
         {mobileDrop && (
-          <div
-            ref={mobileDropRef}
-            style={{
-              position: 'absolute', bottom: 'calc(100% + 8px)', right: 0,
-              background: 'var(--bg-primary)', border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-card)', minWidth: 200,
-              boxShadow: '0 -4px 24px rgba(0,0,0,0.16)', zIndex: 110, overflow: 'hidden',
-            }}
+          <ProfileMenu
+            user={user}
+            t={t}
+            onProfile={handleProfile}
+            onLogout={handleLogout}
+            className="premium-menu-mobile"
           >
-            <div style={{ padding: '14px 16px 12px', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Avatar user={user} size={38} fontSize={14} />
-                <div style={{ minWidth: 0 }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {getDisplayName(user)}
-                  </p>
-                  <p style={{ fontSize: 11, color: 'var(--text-secondary)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {user?.email}
-                  </p>
-                </div>
-              </div>
-            </div>
-            {/* Lang switcher in mobile dropdown */}
-            <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'center' }}>
-              <div style={langSegment.wrap}>
-                <button onClick={() => setLang('fr')} style={langSegment.btn(lang === 'fr')}>FR</button>
-                <button onClick={() => setLang('en')} style={langSegment.btn(lang === 'en')}>EN</button>
-              </div>
-            </div>
-            {/* Theme toggle in mobile dropdown */}
-            <button
-              onClick={toggle}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                padding: '9px 16px', background: 'none', border: 'none',
-                borderBottom: '1px solid var(--border)',
-                cursor: 'pointer', fontSize: 13, fontWeight: 500,
-                color: 'var(--text-primary)', textAlign: 'left',
-              }}
-            >
-              {theme === 'dark'
-                ? <Sun  size={14} strokeWidth={1.75} color="var(--orange)" />
-                : <Moon size={14} strokeWidth={1.75} color="var(--blue)"   />}
-              {theme === 'dark' ? t('nav.lightMode') || 'Mode clair' : t('nav.darkMode') || 'Mode sombre'}
+            <button type="button" className="premium-menu-button" onClick={toggleLang}>
+              <Languages size={16} strokeWidth={2} />
+              {lang === 'fr' ? 'FR / EN' : 'EN / FR'}
             </button>
-            <div style={{ padding: 4 }}>
-              <button
-                onClick={handleProfile}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '9px 12px', background: 'none', border: 'none',
-                  borderRadius: 10, cursor: 'pointer',
-                  fontSize: 13, fontWeight: 500, color: 'var(--text-primary)',
-                  textAlign: 'left', transition: 'background 0.15s',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-              >
-                <UserCircle size={14} strokeWidth={1.75} />
-                {t('nav.myProfile')}
-              </button>
-              <button
-                onClick={handleLogout}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '9px 12px', background: 'none', border: 'none',
-                  borderRadius: 10, cursor: 'pointer',
-                  fontSize: 13, fontWeight: 500, color: 'var(--red-text)',
-                  textAlign: 'left', transition: 'background 0.15s',
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--red-bg)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-              >
-                <LogOut size={14} strokeWidth={1.75} />
-                {t('nav.signOut')}
-              </button>
-            </div>
-          </div>
+            <button type="button" className="premium-menu-button" onClick={toggle}>
+              {theme === 'dark' ? <Sun size={16} strokeWidth={2} /> : <Moon size={16} strokeWidth={2} />}
+              {theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}
+            </button>
+          </ProfileMenu>
         )}
 
-        <div style={{
-          background: 'var(--bg-primary)',
-          borderRadius: 22,
-          border: '1px solid var(--border)',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.16)',
-          display: 'flex', alignItems: 'center',
-          justifyContent: 'space-around',
-          padding: '6px 4px 8px',
-          margin: '0 10px',
-        }}>
+        <div className="premium-mobile-bar">
           {NAV_KEYS.map(({ to, tKey, icon: Icon }) => {
             const active = isActive(to);
-            const label  = t(tKey);
-            // Shorten label for mobile tab bar
-            const short  = label.length > 9 ? label.slice(0, 8) + '…' : label;
+            const label = t(tKey);
+            const short = label.length > 10 ? `${label.slice(0, 9)}...` : label;
             return (
-              <NavLink key={to} to={to} style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-                padding: '6px 10px', borderRadius: 14, textDecoration: 'none',
-                background: active ? 'var(--blue-bg)' : 'transparent',
-                transition: 'background 0.15s', minWidth: 52,
-              }}>
-                <Icon size={20} strokeWidth={1.5} color={active ? 'var(--blue)' : 'var(--text-secondary)'} />
-                <span style={{
-                  fontSize: 9.5, fontWeight: active ? 600 : 500,
-                  color: active ? 'var(--blue)' : 'var(--text-secondary)',
-                  letterSpacing: '0.01em', lineHeight: 1,
-                }}>
-                  {short}
-                </span>
+              <NavLink
+                key={to}
+                to={to}
+                className={`premium-mobile-link ${active ? 'active' : ''}`}
+              >
+                <Icon size={20} strokeWidth={1.8} />
+                <span>{short}</span>
               </NavLink>
             );
           })}
-
           <button
-            onClick={() => setMobileDrop((v) => !v)}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-              padding: '6px 10px', borderRadius: 14, background: mobileDrop ? 'var(--blue-bg)' : 'transparent',
-              border: 'none', cursor: 'pointer', transition: 'background 0.15s', minWidth: 52,
-            }}
+            type="button"
+            className={`premium-mobile-profile ${mobileDrop ? 'active' : ''}`}
+            onClick={() => setMobileDrop((value) => !value)}
+            aria-expanded={mobileDrop}
+            aria-label={t('nav.profile')}
           >
-            <div style={{
-              width: 22, height: 22, borderRadius: '50%',
-              background: mobileDrop ? 'var(--blue)' : 'var(--bg-tertiary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 8.5, fontWeight: 700, color: mobileDrop ? '#fff' : 'var(--text-secondary)',
-              letterSpacing: '0.03em',
-            }}>
-              {getInitials(user)}
-            </div>
-            <span style={{
-              fontSize: 9.5, fontWeight: mobileDrop ? 600 : 500,
-              color: mobileDrop ? 'var(--blue)' : 'var(--text-secondary)',
-              letterSpacing: '0.01em', lineHeight: 1,
-            }}>
-              {t('nav.profile')}
-            </span>
+            <Avatar user={user} />
+            <span>{t('nav.profile')}</span>
           </button>
         </div>
-      </div>
+      </nav>
     </>
+  );
+}
+
+function ProfileMenu({ user, t, onProfile, onLogout, className = '', children }) {
+  return (
+    <div className={`premium-menu ${className}`}>
+      <div className="premium-menu-user">
+        <Avatar user={user} />
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, color: 'var(--text-primary)', fontSize: 14, fontWeight: 850, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {getDisplayName(user)}
+          </p>
+          <p style={{ margin: '2px 0 0', color: 'var(--text-secondary)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {user?.email}
+          </p>
+        </div>
+      </div>
+      <div className="premium-menu-actions">
+        {children}
+        <button type="button" className="premium-menu-button" onClick={onProfile}>
+          <UserCircle size={16} strokeWidth={2} />
+          {t('nav.myProfile')}
+        </button>
+        <button type="button" className="premium-menu-button premium-menu-button-danger" onClick={onLogout}>
+          <LogOut size={16} strokeWidth={2} />
+          {t('nav.signOut')}
+        </button>
+      </div>
+    </div>
   );
 }

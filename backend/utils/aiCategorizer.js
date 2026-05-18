@@ -1,25 +1,21 @@
-/**
- * AI-based transaction category classifier using DeepSeek via Hugging Face Inference.
- * Falls back to safe default categories if AI call fails or returns unrecognised output.
- *
- * Required env vars (already used by chatbotEngine):
- *   HF_TOKEN  – Hugging Face access token (provides DeepSeek model access)
- *   HF_MODEL  – e.g. "deepseek-ai/DeepSeek-V3-0324"
- */
+// AI-based transaction category classifier.
+// Uses whichever AI provider is configured in aiClient (Groq / DeepSeek / HF).
+// Falls back to safe default category on AI failure.
 
-const { chatCompletion } = require('./hfClient');
+const { chatCompletion } = require('./aiClient');
 
 // Mirrors the seeded Category table
 const CATEGORIES = [
-  { id: 1, name: 'Alimentation' },
-  { id: 2, name: 'Transport' },
-  { id: 3, name: 'Abonnements' },
-  { id: 4, name: 'Loisirs' },
-  { id: 5, name: 'Santé' },
-  { id: 6, name: 'Logement' },
-  { id: 7, name: 'Autre dépense' },
-  { id: 8, name: 'Salaire' },
-  { id: 9, name: 'Autre revenu' },
+  { id: 1,  name: 'Alimentation' },
+  { id: 2,  name: 'Transport' },
+  { id: 3,  name: 'Abonnements' },
+  { id: 4,  name: 'Loisirs' },
+  { id: 5,  name: 'Santé' },
+  { id: 6,  name: 'Logement' },
+  { id: 7,  name: 'Autre dépense' },
+  { id: 8,  name: 'Salaire' },
+  { id: 9,  name: 'Autre revenu' },
+  { id: 10, name: 'Épargne' },
 ];
 
 const NAME_TO_ID = Object.fromEntries(
@@ -53,7 +49,9 @@ Respond with exactly one category name from the list above.`;
 async function classifyWithAI(description, amount, type = 'expense') {
   const fallback = type === 'income' ? 9 : 7;
 
-  if (!process.env.HF_TOKEN) return fallback;
+  if (!process.env.GROQ_API_KEY && !process.env.DEEPSEEK_API_KEY && !process.env.HF_TOKEN) {
+    return fallback;
+  }
 
   try {
     const userMsg = `Description: "${description}", Amount: ${amount}€, Type: ${type}`;

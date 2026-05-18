@@ -1,31 +1,541 @@
-date,description,montant,type
-2025-10-01,Salaire octobre,2800.00,income
-2025-10-02,Carrefour Market,-67.50,expense
-2025-10-03,RATP Navigo,-86.40,expense
-2025-10-04,Netflix,-15.99,expense
-2025-10-05,Uber Eats,-32.80,expense
-2025-10-06,Pharmacie Centrale,-18.90,expense
-2025-10-07,Spotify,-9.99,expense
-2025-10-08,Carrefour,-54.20,expense
-2025-10-09,SNCF Paris Lyon,-45.00,expense
-2025-10-10,Loyer octobre,-850.00,expense
-2025-10-11,EDF Electricité,-62.40,expense
-2025-10-12,Orange Mobile,-29.99,expense
-2025-10-13,McDonald's,-14.50,expense
-2025-10-14,Fnac Livre,-24.99,expense
-2025-10-15,Virement freelance,450.00,income
-2025-10-16,Lidl,-43.80,expense
-2025-10-17,Uber,-12.30,expense
-2025-10-18,Amazon Prime,-6.99,expense
-2025-10-19,Sushi Restaurant,-38.00,expense
-2025-10-20,Monoprix,-51.60,expense
-2025-10-21,Decathlon,-49.90,expense
-2025-10-22,Disney+,-8.99,expense
-2025-10-23,Dentiste,-80.00,expense
-2025-10-24,SNCF Bordeaux,-67.00,expense
-2025-10-25,Intermarché,-39.70,expense
-2025-10-26,Bolt Taxi,-16.50,expense
-2025-10-27,Canal+,-19.99,expense
-2025-10-28,Pizza Hut,-28.00,expense
-2025-10-29,Mutuelle Santé,-55.00,expense
-2025-10-30,Carrefour Bio,-61.30,expense
+date,description,amount,type
+2025-11-15,Carrefour Bio,-18.50,expense
+2025-11-15,Spotify Monthly,-9.99,expense
+2025-11-16,Boulangerie Dumont,-4.20,expense
+2025-11-16,Bus Ticket,-1.50,expense
+2025-11-17,Monoprix,-32.40,expense
+2025-11-17,Netflix,-13.99,expense
+2025-11-17,Cafe Cremerie,-3.80,expense
+2025-11-18,Uber,-11.50,expense
+2025-11-18,Restaurant Le Jules,-28.00,expense
+2025-11-19,Loyer Novembre,-850.00,expense
+2025-11-19,Mutuelle Santé,-38.00,expense
+2025-11-20,Salary November,3200.00,income
+2025-11-20,Leclerc,-54.30,expense
+2025-11-20,Cinema UGC,-11.50,expense
+2025-11-21,Boulangerie,-3.60,expense
+2025-11-21,Amazon,-22.99,expense
+2025-11-22,Carrefour Express,-12.80,expense
+2025-11-22,Bolt Taxi,-9.50,expense
+2025-11-22,Macdonald's,-9.80,expense
+2025-11-23,RATP Pass Navigo,-86.00,expense
+2025-11-23,Disney+,-8.99,expense
+2025-11-24,Franprix,-19.25,expense
+2025-11-24,Pizza Hut,-14.00,expense
+2025-11-25,Pharmacie Centrale,-18.60,expense
+2025-11-25,Cafe,-3.50,expense
+2025-11-26,Boulangerie,-4.80,expense
+2025-11-26,Dentiste,-25.00,expense
+2025-11-27,Leclerc,-47.90,expense
+2025-11-27,Amazon Prime,-6.99,expense
+2025-11-27,Restaurant,-24.50,expense
+2025-11-28,SNCF Weekend,-28.00,expense
+2025-11-28,Netflix,-13.99,expense
+2025-11-29,Quick Bite,-7.20,expense
+2025-11-29,Pharmacie,-12.60,expense
+2025-11-30,Monoprix,-21.45,expense
+2025-11-30,Spotify,-9.99,expense
+2025-12-01,Carrefour,-26.60,expense
+2025-12-01,Taxi,-11.00,expense
+2025-12-01,Restaurant Italiana,-31.00,expense
+2025-12-02,Franprix,-18.80,expense
+2025-12-02,Uber,-14.50,expense
+2025-12-02,Disney+,-8.99,expense
+2025-12-03,Leclerc,-42.20,expense
+2025-12-03,Doctor Martin,-25.00,expense
+2025-12-04,Boulangerie,-4.50,expense
+2025-12-04,Cinema,-11.50,expense
+2025-12-05,Loyer Décembre,-850.00,expense
+2025-12-05,Mutuelle,-38.00,expense
+2025-12-05,Train Paris-Lyon,-52.00,expense
+2025-12-06,Freelance Work,600.00,income
+2025-12-06,Monoprix,-19.90,expense
+2025-12-06,Essence Total,-48.00,expense
+2025-12-07,Carrefour Express,-14.10,expense
+2025-12-07,Bolt Taxi,-10.50,expense
+2025-12-07,Netflix,-13.99,expense
+2025-12-08,Franprix,-16.35,expense
+2025-12-08,Amazon,-31.99,expense
+2025-12-09,Quick Lunch,-8.20,expense
+2025-12-09,Taxi,-10.00,expense
+2025-12-09,Spotify,-9.99,expense
+2025-12-10,Leclerc,-51.30,expense
+2025-12-10,Pharmacie,-22.80,expense
+2025-12-10,Gym,-35.00,expense
+2025-12-11,Boulangerie,-5.80,expense
+2025-12-11,RATP Navigo,-86.00,expense
+2025-12-11,Noel Shopping,-65.50,expense
+2025-12-12,Carrefour Bio,-29.40,expense
+2025-12-12,Doctor,-25.00,expense
+2025-12-13,Monoprix,-17.60,expense
+2025-12-13,Disney+,-8.99,expense
+2025-12-13,Theater,-22.00,expense
+2025-12-14,Franprix,-18.80,expense
+2025-12-14,Bolt,-14.50,expense
+2025-12-14,Amazon Prime,-6.99,expense
+2025-12-14,Mutuelle,-38.00,expense
+2025-12-15,Auchan,-24.10,expense
+2025-12-15,Dentist,-30.00,expense
+2025-12-15,Netflix,-13.99,expense
+2025-12-16,Quick,-8.30,expense
+2025-12-16,Pharmacie,-15.20,expense
+2025-12-17,Leclerc,-38.70,expense
+2025-12-17,Restaurant,-34.00,expense
+2025-12-18,Boulangerie,-5.10,expense
+2025-12-18,Cafe,-3.80,expense
+2025-12-18,Concert,-35.00,expense
+2025-12-19,Carrefour,-22.50,expense
+2025-12-19,Spotify,-9.99,expense
+2025-12-20,Monoprix,-14.40,expense
+2025-12-20,Train,-55.00,expense
+2025-12-20,Noel Gifts,-80.00,expense
+2025-12-20,Doctor,-25.00,expense
+2025-12-21,Franprix,-19.60,expense
+2025-12-21,Amazon,-28.99,expense
+2025-12-21,Mutuelle,-38.00,expense
+2025-12-22,Quick Lunch,-9.80,expense
+2025-12-22,Restaurant,-38.00,expense
+2025-12-22,Pharmacie,-14.50,expense
+2025-12-23,Leclerc,-44.30,expense
+2025-12-23,Uber,-16.50,expense
+2025-12-24,Carrefour Bio,-27.10,expense
+2025-12-24,Christmas Dinner,-45.00,expense
+2025-12-24,Disney+,-8.99,expense
+2025-12-25,Freelance Project,800.00,income
+2025-12-25,Boulangerie,-4.40,expense
+2025-12-25,Netflix,-13.99,expense
+2025-12-26,Monoprix,-16.70,expense
+2025-12-26,Taxi,-11.50,expense
+2025-12-27,Auchan,-23.40,expense
+2025-12-27,Spotify,-9.99,expense
+2025-12-27,Restaurant,-29.00,expense
+2025-12-28,Franprix,-18.20,expense
+2025-12-28,Bolt,-13.00,expense
+2025-12-28,Pharmacie,-16.80,expense
+2025-12-29,Quick,-8.50,expense
+2025-12-29,Amazon Prime,-6.99,expense
+2025-12-29,Cinema,-11.50,expense
+2025-12-30,Carrefour,-23.80,expense
+2025-12-30,Uber,-15.50,expense
+2025-12-30,New Year Prep,-42.00,expense
+2025-12-31,Leclerc,-19.60,expense
+2025-12-31,Netflix,-13.99,expense
+2025-12-31,New Year Dinner Out,-55.00,expense
+2026-01-01,Salary January,3200.00,income
+2026-01-01,Boulangerie,-3.80,expense
+2026-01-01,New Year Brunch,-22.00,expense
+2026-01-02,Monoprix,-14.50,expense
+2026-01-02,Spotify,-9.99,expense
+2026-01-02,Pharmacie,-14.40,expense
+2026-01-03,Franprix,-19.30,expense
+2026-01-03,SNCF,-32.00,expense
+2026-01-03,Doctor,-25.00,expense
+2026-01-04,Quick Lunch,-8.20,expense
+2026-01-04,Bolt Taxi,-10.00,expense
+2026-01-04,Disney+,-8.99,expense
+2026-01-05,Loyer Janvier,-850.00,expense
+2026-01-05,Mutuelle,-38.00,expense
+2026-01-05,RATP Navigo,-86.00,expense
+2026-01-06,Leclerc,-52.10,expense
+2026-01-06,Amazon Prime,-6.99,expense
+2026-01-06,Netflix,-13.99,expense
+2026-01-07,Boulangerie,-4.60,expense
+2026-01-07,Taxi,-10.00,expense
+2026-01-07,Pharmacie,-18.20,expense
+2026-01-08,Carrefour,-28.80,expense
+2026-01-08,Cinema,-11.50,expense
+2026-01-09,Monoprix,-17.80,expense
+2026-01-09,Spotify,-9.99,expense
+2026-01-09,Doctor,-25.00,expense
+2026-01-10,Franprix,-22.50,expense
+2026-01-10,Bolt,-11.50,expense
+2026-01-10,Restaurant,-27.00,expense
+2026-01-11,Quick,-8.70,expense
+2026-01-11,Amazon,-18.50,expense
+2026-01-11,Dentist,-30.00,expense
+2026-01-12,Leclerc,-48.20,expense
+2026-01-12,Uber,-13.00,expense
+2026-01-12,Disney+,-8.99,expense
+2026-01-13,Boulangerie,-4.20,expense
+2026-01-13,Pharmacie,-12.80,expense
+2026-01-13,Netflix,-13.99,expense
+2026-01-14,Carrefour Bio,-26.80,expense
+2026-01-14,Cafe,-3.50,expense
+2026-01-14,Concert,-28.00,expense
+2026-01-15,Monoprix,-15.90,expense
+2026-01-15,Taxi,-11.00,expense
+2026-01-15,Spotify,-9.99,expense
+2026-01-16,Franprix,-21.40,expense
+2026-01-16,SNCF,-28.00,expense
+2026-01-16,Doctor,-25.00,expense
+2026-01-17,Quick Lunch,-8.50,expense
+2026-01-17,Mutuelle,-38.00,expense
+2026-01-17,Restaurant,-31.50,expense
+2026-01-18,Leclerc,-43.70,expense
+2026-01-18,Amazon Prime,-6.99,expense
+2026-01-18,Uber,-12.00,expense
+2026-01-19,Boulangerie,-5.10,expense
+2026-01-19,Pharmacie,-19.60,expense
+2026-01-19,Disney+,-8.99,expense
+2026-01-20,Carrefour,-24.50,expense
+2026-01-20,Gym,-35.00,expense
+2026-01-21,Monoprix,-16.40,expense
+2026-01-21,Netflix,-13.99,expense
+2026-01-21,Theater,-22.00,expense
+2026-01-22,Franprix,-20.80,expense
+2026-01-22,Bolt,-10.50,expense
+2026-01-22,Taxi,-9.00,expense
+2026-01-23,Quick,-7.80,expense
+2026-01-23,Spotify,-9.99,expense
+2026-01-24,Leclerc,-51.30,expense
+2026-01-24,Amazon,-45.99,expense
+2026-01-25,Boulangerie,-4.80,expense
+2026-01-25,Doctor,-25.00,expense
+2026-01-25,Cinema,-11.50,expense
+2026-01-26,Carrefour Bio,-22.10,expense
+2026-01-26,Uber,-14.00,expense
+2026-01-26,Mutuelle,-38.00,expense
+2026-01-27,Monoprix,-18.30,expense
+2026-01-27,Restaurant,-26.00,expense
+2026-01-27,Disney+,-8.99,expense
+2026-01-28,Franprix,-19.50,expense
+2026-01-28,Pharmacie,-11.40,expense
+2026-01-28,Netflix,-13.99,expense
+2026-01-29,Quick Lunch,-8.90,expense
+2026-01-29,Bolt Taxi,-10.00,expense
+2026-01-29,Cafe,-3.20,expense
+2026-01-30,Leclerc,-46.80,expense
+2026-01-30,Spotify,-9.99,expense
+2026-01-31,Boulangerie,-4.60,expense
+2026-01-31,Amazon Prime,-6.99,expense
+2026-02-01,Salary February,3200.00,income
+2026-02-01,Carrefour,-21.90,expense
+2026-02-01,Dentist,-30.00,expense
+2026-02-02,Loyer Février,-850.00,expense
+2026-02-02,Mutuelle,-38.00,expense
+2026-02-02,RATP Navigo,-86.00,expense
+2026-02-03,Franprix,-19.30,expense
+2026-02-03,Uber,-13.50,expense
+2026-02-03,Netflix,-13.99,expense
+2026-02-04,Quick Lunch,-9.20,expense
+2026-02-04,Bolt Taxi,-11.50,expense
+2026-02-04,Doctor,-25.00,expense
+2026-02-05,Leclerc,-48.40,expense
+2026-02-05,Disney+,-8.99,expense
+2026-02-05,Pharmacie,-16.60,expense
+2026-02-06,Boulangerie,-4.30,expense
+2026-02-06,Taxi,-10.50,expense
+2026-02-06,Amazon Prime,-6.99,expense
+2026-02-07,Monoprix,-17.70,expense
+2026-02-07,Spotify,-9.99,expense
+2026-02-07,Theater,-22.00,expense
+2026-02-08,Carrefour,-25.10,expense
+2026-02-08,Netflix,-13.99,expense
+2026-02-08,Amazon,-29.99,expense
+2026-02-09,Franprix,-22.20,expense
+2026-02-09,SNCF,-34.00,expense
+2026-02-09,Doctor,-25.00,expense
+2026-02-10,Quick,-8.40,expense
+2026-02-10,Uber,-12.50,expense
+2026-02-10,Restaurant,-29.50,expense
+2026-02-10,Pharmacie,-14.80,expense
+2026-02-11,Leclerc,-44.30,expense
+2026-02-11,Bolt,-11.00,expense
+2026-02-11,Disney+,-8.99,expense
+2026-02-12,Boulangerie,-5.90,expense
+2026-02-12,Mutuelle,-38.00,expense
+2026-02-12,Concert,-32.00,expense
+2026-02-13,Monoprix,-16.50,expense
+2026-02-13,Taxi,-11.00,expense
+2026-02-13,Spotify,-9.99,expense
+2026-02-14,Carrefour Bio,-23.80,expense
+2026-02-14,Valentine Dinner,-68.00,expense
+2026-02-14,Netflix,-13.99,expense
+2026-02-15,Auchan,-29.60,expense
+2026-02-15,Dentist,-30.00,expense
+2026-02-16,Franprix,-18.80,expense
+2026-02-16,Uber,-13.00,expense
+2026-02-16,Amazon Prime,-6.99,expense
+2026-02-17,Quick Lunch,-8.10,expense
+2026-02-17,Pharmacie,-17.40,expense
+2026-02-17,Restaurant,-24.00,expense
+2026-02-18,Leclerc,-46.40,expense
+2026-02-18,Bolt Taxi,-10.50,expense
+2026-02-18,Spotify,-9.99,expense
+2026-02-19,Boulangerie,-4.70,expense
+2026-02-19,Doctor,-25.00,expense
+2026-02-19,Disney+,-8.99,expense
+2026-02-20,Monoprix,-19.20,expense
+2026-02-20,Taxi,-12.00,expense
+2026-02-20,Concert,-35.00,expense
+2026-02-21,Carrefour,-26.30,expense
+2026-02-21,Netflix,-13.99,expense
+2026-02-21,Mutuelle,-38.00,expense
+2026-02-22,Franprix,-21.50,expense
+2026-02-22,Uber,-14.00,expense
+2026-02-22,Amazon,-19.50,expense
+2026-02-23,Quick,-9.90,expense
+2026-02-23,Pharmacie,-13.20,expense
+2026-02-23,Cafe,-3.80,expense
+2026-02-24,Leclerc,-42.80,expense
+2026-02-24,Bolt,-11.50,expense
+2026-02-24,Spotify,-9.99,expense
+2026-02-25,Boulangerie,-5.40,expense
+2026-02-25,Theater,-18.00,expense
+2026-02-25,Amazon Prime,-6.99,expense
+2026-02-26,Carrefour Bio,-20.10,expense
+2026-02-26,Taxi,-10.50,expense
+2026-02-26,Doctor,-25.00,expense
+2026-02-27,Monoprix,-17.80,expense
+2026-02-27,Netflix,-13.99,expense
+2026-02-27,Restaurant,-27.50,expense
+2026-02-28,Franprix,-18.40,expense
+2026-02-28,Disney+,-8.99,expense
+2026-02-28,Pharmacie,-15.60,expense
+2026-03-01,Carrefour,-22.90,expense
+2026-03-01,Uber,-13.00,expense
+2026-03-01,Cinema,-11.50,expense
+2026-03-02,Salary March,3200.00,income
+2026-03-02,Franprix,-20.20,expense
+2026-03-02,Doctor,-25.00,expense
+2026-03-03,Loyer Mars,-850.00,expense
+2026-03-03,Mutuelle,-38.00,expense
+2026-03-03,RATP Navigo,-86.00,expense
+2026-03-03,Quick Lunch,-8.30,expense
+2026-03-04,Leclerc,-49.60,expense
+2026-03-04,Bolt Taxi,-10.00,expense
+2026-03-04,Netflix,-13.99,expense
+2026-03-05,Boulangerie,-4.10,expense
+2026-03-05,Spotify,-9.99,expense
+2026-03-05,Pharmacie,-12.40,expense
+2026-03-06,Carrefour,-24.70,expense
+2026-03-06,Amazon Prime,-6.99,expense
+2026-03-06,Doctor,-25.00,expense
+2026-03-07,Monoprix,-16.30,expense
+2026-03-07,Taxi,-11.00,expense
+2026-03-07,Concert,-30.00,expense
+2026-03-08,Franprix,-19.40,expense
+2026-03-08,Uber,-13.50,expense
+2026-03-08,Disney+,-8.99,expense
+2026-03-08,Mutuelle,-38.00,expense
+2026-03-09,Quick,-8.70,expense
+2026-03-09,Restaurant,-26.50,expense
+2026-03-09,Dentist,-30.00,expense
+2026-03-10,Leclerc,-44.80,expense
+2026-03-10,Amazon,-32.50,expense
+2026-03-10,Spotify,-9.99,expense
+2026-03-11,Boulangerie,-5.80,expense
+2026-03-11,Bolt,-10.50,expense
+2026-03-11,Netflix,-13.99,expense
+2026-03-12,Carrefour Bio,-21.30,expense
+2026-03-12,Taxi,-9.50,expense
+2026-03-12,Pharmacie,-14.20,expense
+2026-03-13,Monoprix,-17.80,expense
+2026-03-13,Cinema,-11.50,expense
+2026-03-13,Amazon Prime,-6.99,expense
+2026-03-14,Franprix,-20.80,expense
+2026-03-14,SNCF,-36.00,expense
+2026-03-14,Doctor,-25.00,expense
+2026-03-15,Quick Lunch,-8.90,expense
+2026-03-15,Uber,-12.00,expense
+2026-03-15,Restaurant,-29.00,expense
+2026-03-15,Spotify,-9.99,expense
+2026-03-16,Leclerc,-51.20,expense
+2026-03-16,Disney+,-8.99,expense
+2026-03-16,Mutuelle,-38.00,expense
+2026-03-17,Boulangerie,-4.50,expense
+2026-03-17,Theater,-20.00,expense
+2026-03-17,Pharmacie,-11.80,expense
+2026-03-18,Carrefour,-26.50,expense
+2026-03-18,Bolt Taxi,-11.00,expense
+2026-03-18,Netflix,-13.99,expense
+2026-03-19,Monoprix,-15.60,expense
+2026-03-19,Cafe,-3.50,expense
+2026-03-19,Amazon,-25.99,expense
+2026-03-20,Franprix,-18.90,expense
+2026-03-20,Uber,-14.00,expense
+2026-03-20,Spotify,-9.99,expense
+2026-03-21,Quick,-7.80,expense
+2026-03-21,Restaurant,-24.50,expense
+2026-03-21,Doctor,-25.00,expense
+2026-03-22,Leclerc,-46.30,expense
+2026-03-22,Amazon Prime,-6.99,expense
+2026-03-22,Disney+,-8.99,expense
+2026-03-23,Boulangerie,-5.20,expense
+2026-03-23,Taxi,-10.00,expense
+2026-03-23,Pharmacie,-16.50,expense
+2026-03-24,Carrefour Bio,-22.40,expense
+2026-03-24,Mutuelle,-38.00,expense
+2026-03-24,Netflix,-13.99,expense
+2026-03-25,Monoprix,-17.10,expense
+2026-03-25,Gym,-35.00,expense
+2026-03-25,Bolt,-10.50,expense
+2026-03-26,Franprix,-20.30,expense
+2026-03-26,Uber,-12.50,expense
+2026-03-26,Spotify,-9.99,expense
+2026-03-27,Quick Lunch,-9.40,expense
+2026-03-27,Concert,-28.00,expense
+2026-03-27,Doctor,-25.00,expense
+2026-03-28,Leclerc,-48.70,expense
+2026-03-28,Amazon,-19.99,expense
+2026-03-28,Dentist,-30.00,expense
+2026-03-29,Boulangerie,-4.90,expense
+2026-03-29,Taxi,-11.50,expense
+2026-03-29,Netflix,-13.99,expense
+2026-03-30,Carrefour,-23.60,expense
+2026-03-30,Pharmacie,-13.40,expense
+2026-03-30,Amazon Prime,-6.99,expense
+2026-03-31,Franprix,-17.80,expense
+2026-03-31,Restaurant,-31.00,expense
+2026-03-31,Disney+,-8.99,expense
+2026-04-01,Salary April,3200.00,income
+2026-04-01,Quick Lunch,-8.30,expense
+2026-04-01,Uber,-13.00,expense
+2026-04-01,Spotify,-9.99,expense
+2026-04-02,Loyer Avril,-850.00,expense
+2026-04-02,Mutuelle,-38.00,expense
+2026-04-02,RATP Navigo,-86.00,expense
+2026-04-02,Leclerc,-45.30,expense
+2026-04-03,Boulangerie,-4.50,expense
+2026-04-03,Taxi,-10.00,expense
+2026-04-03,Netflix,-13.99,expense
+2026-04-04,Carrefour,-24.80,expense
+2026-04-04,Doctor,-25.00,expense
+2026-04-04,Amazon Prime,-6.99,expense
+2026-04-05,Monoprix,-16.40,expense
+2026-04-05,Cafe,-3.80,expense
+2026-04-05,Dentist,-30.00,expense
+2026-04-06,Franprix,-19.50,expense
+2026-04-06,Bolt Taxi,-11.00,expense
+2026-04-06,Restaurant,-27.50,expense
+2026-04-06,Spotify,-9.99,expense
+2026-04-07,Quick,-8.10,expense
+2026-04-07,Uber,-12.50,expense
+2026-04-07,Pharmacie,-15.30,expense
+2026-04-08,Leclerc,-49.80,expense
+2026-04-08,Amazon,-38.99,expense
+2026-04-08,Disney+,-8.99,expense
+2026-04-09,Boulangerie,-5.30,expense
+2026-04-09,SNCF,-41.00,expense
+2026-04-09,Doctor,-25.00,expense
+2026-04-10,Carrefour Bio,-23.40,expense
+2026-04-10,Taxi,-10.50,expense
+2026-04-10,Netflix,-13.99,expense
+2026-04-10,Mutuelle,-38.00,expense
+2026-04-11,Monoprix,-18.60,expense
+2026-04-11,Bolt,-11.00,expense
+2026-04-11,Amazon,-22.50,expense
+2026-04-12,Franprix,-21.10,expense
+2026-04-12,Spotify,-9.99,expense
+2026-04-12,Cinema,-11.50,expense
+2026-04-13,Quick Lunch,-9.20,expense
+2026-04-13,Uber,-13.50,expense
+2026-04-13,Restaurant,-25.00,expense
+2026-04-13,Pharmacie,-14.60,expense
+2026-04-14,Leclerc,-47.40,expense
+2026-04-14,Amazon Prime,-6.99,expense
+2026-04-14,Doctor,-25.00,expense
+2026-04-15,Boulangerie,-4.80,expense
+2026-04-15,Taxi,-11.00,expense
+2026-04-15,Netflix,-13.99,expense
+2026-04-16,Carrefour,-25.60,expense
+2026-04-16,Gym,-35.00,expense
+2026-04-16,Disney+,-8.99,expense
+2026-04-17,Monoprix,-17.40,expense
+2026-04-17,Bolt Taxi,-10.00,expense
+2026-04-17,Pharmacie,-12.80,expense
+2026-04-18,Franprix,-20.50,expense
+2026-04-18,Uber,-14.00,expense
+2026-04-18,Concert,-32.00,expense
+2026-04-18,Spotify,-9.99,expense
+2026-04-19,Quick,-8.50,expense
+2026-04-19,Doctor,-25.00,expense
+2026-04-19,Restaurant,-28.00,expense
+2026-04-20,Leclerc,-52.30,expense
+2026-04-20,Taxi,-10.50,expense
+2026-04-20,Amazon Prime,-6.99,expense
+2026-04-20,Mutuelle,-38.00,expense
+2026-04-21,Boulangerie,-5.60,expense
+2026-04-21,Netflix,-13.99,expense
+2026-04-21,Theater,-20.00,expense
+2026-04-22,Carrefour Bio,-24.10,expense
+2026-04-22,Bolt,-11.50,expense
+2026-04-22,Dentist,-30.00,expense
+2026-04-23,Monoprix,-16.90,expense
+2026-04-23,Cafe,-3.50,expense
+2026-04-23,Spotify,-9.99,expense
+2026-04-24,Franprix,-19.80,expense
+2026-04-24,SNCF,-38.00,expense
+2026-04-24,Pharmacie,-13.60,expense
+2026-04-25,Quick Lunch,-9.10,expense
+2026-04-25,Uber,-13.00,expense
+2026-04-25,Restaurant,-26.50,expense
+2026-04-26,Leclerc,-44.50,expense
+2026-04-26,Disney+,-8.99,expense
+2026-04-26,Amazon,-27.99,expense
+2026-04-27,Boulangerie,-4.20,expense
+2026-04-27,Taxi,-10.00,expense
+2026-04-27,Doctor,-25.00,expense
+2026-04-28,Carrefour,-22.80,expense
+2026-04-28,Netflix,-13.99,expense
+2026-04-28,Mutuelle,-38.00,expense
+2026-04-29,Franprix,-18.60,expense
+2026-04-29,Bolt Taxi,-11.00,expense
+2026-04-29,Spotify,-9.99,expense
+2026-04-30,Quick,-7.90,expense
+2026-04-30,Amazon Prime,-6.99,expense
+2026-04-30,Pharmacie,-15.20,expense
+2026-05-01,Salary May,3200.00,income
+2026-05-01,Carrefour,-23.30,expense
+2026-05-01,Uber,-12.50,expense
+2026-05-01,Doctor,-25.00,expense
+2026-05-02,Loyer Mai,-850.00,expense
+2026-05-02,Mutuelle,-38.00,expense
+2026-05-02,RATP Navigo,-86.00,expense
+2026-05-02,Monoprix,-17.70,expense
+2026-05-03,Boulangerie,-4.80,expense
+2026-05-03,Taxi,-10.50,expense
+2026-05-03,Netflix,-13.99,expense
+2026-05-03,Dentist,-30.00,expense
+2026-05-04,Franprix,-21.50,expense
+2026-05-04,Bolt,-11.00,expense
+2026-05-04,Restaurant,-24.50,expense
+2026-05-04,Spotify,-9.99,expense
+2026-05-05,Quick Lunch,-8.60,expense
+2026-05-05,SNCF,-33.00,expense
+2026-05-05,Pharmacie,-13.80,expense
+2026-05-06,Leclerc,-48.40,expense
+2026-05-06,Uber,-13.00,expense
+2026-05-06,Amazon Prime,-6.99,expense
+2026-05-06,Doctor,-25.00,expense
+2026-05-07,Boulangerie,-5.10,expense
+2026-05-07,Disney+,-8.99,expense
+2026-05-07,Cinema,-11.50,expense
+2026-05-08,Carrefour Bio,-24.50,expense
+2026-05-08,Taxi,-10.00,expense
+2026-05-08,Netflix,-13.99,expense
+2026-05-08,Mutuelle,-38.00,expense
+2026-05-09,Monoprix,-16.80,expense
+2026-05-09,Bolt Taxi,-11.50,expense
+2026-05-09,Restaurant,-27.00,expense
+2026-05-09,Spotify,-9.99,expense
+2026-05-10,Franprix,-20.40,expense
+2026-05-10,Amazon,-31.99,expense
+2026-05-10,Pharmacie,-12.60,expense
+2026-05-11,Quick,-8.90,expense
+2026-05-11,Uber,-13.50,expense
+2026-05-11,Doctor,-25.00,expense
+2026-05-11,Amazon Prime,-6.99,expense
+2026-05-12,Leclerc,-50.20,expense
+2026-05-12,Taxi,-11.00,expense
+2026-05-12,Disney+,-8.99,expense
+2026-05-13,Boulangerie,-4.60,expense
+2026-05-13,Cafe,-3.80,expense
+2026-05-13,Netflix,-13.99,expense
+2026-05-14,Carrefour,-24.90,expense
+2026-05-14,Bolt,-10.50,expense
+2026-05-14,Restaurant,-28.50,expense
+2026-05-14,Spotify,-9.99,expense
+2026-05-15,Monoprix,-18.20,expense
+2026-05-15,Uber,-13.00,expense
+2026-05-15,Pharmacie,-14.50,expense

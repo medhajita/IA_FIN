@@ -57,6 +57,10 @@ async function uploadCSV(req, res) {
 async function getTransactions(req, res) {
   try {
     const { category_id, type, startDate, endDate } = req.query;
+    const requestedLimit = Number.parseInt(req.query.limit, 10);
+    const limit = Number.isInteger(requestedLimit) && requestedLimit > 0
+      ? Math.min(requestedLimit, 500)
+      : undefined;
 
     const where = { user_id: req.user.id };
     if (category_id) where.category_id = category_id;
@@ -71,6 +75,7 @@ async function getTransactions(req, res) {
       where,
       include: [{ model: Category, attributes: ['id', 'name', 'color', 'type'] }],
       order: [['date', 'DESC']],
+      ...(limit ? { limit } : {}),
     });
 
     return res.status(200).json({ data: { transactions } });
@@ -178,4 +183,36 @@ async function deleteTransaction(req, res) {
   }
 }
 
-module.exports = { uploadCSV, getTransactions, updateTransactionCategory, recategorize, createTransaction, updateTransaction, deleteTransaction };
+async function seedDemo(req, res) {
+  try {
+    const userId = req.user.id;
+    const existing = await Transaction.count({ where: { user_id: userId } });
+    if (existing > 0) return res.json({ message: 'Already has data' });
+
+    const demoCSV = path.join(__dirname, '../../frontend/public/demo-transactions.csv');
+    if (!fs.existsSync(demoCSV)) return res.status(404).json({ error: 'Demo CSV not found' });
+
+    const rows = await parseCSV(demoCSV);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+
+    for (const row of rows) {
+      const category_id = categorizeByRules(row.description) ?? 7;
+      const day = (row.date || '').slice(8, 10) || '01';
+      await Transaction.create({
+        user_id: userId,
+        date: `${year}-${month}-${day}`,
+        description: row.description,
+        amount: Math.abs(row.amount),
+        type: row.type,
+        category_id,
+      });
+    }
+    return res.json({ message: 'Demo data seeded', count: rows.length });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+module.exports = { uploadCSV, getTransactions, updateTransactionCategory, recategorize, createTransaction, updateTransaction, deleteTransaction, seedDemo };
