@@ -378,7 +378,7 @@ function getScreens(copy, theme, lang) {
   }));
 }
 
-function PhoneFrame({ screen, priority = false, size = 'md' }) {
+export function PhoneFrame({ screen, priority = false, size = 'md' }) {
   return (
     <div className={`landing-phone-shot landing-phone-shot-${size} landing-phone-shot-${screen.key}`}>
       <div className="landing-phone-device" aria-label={`${screen.title} mobile app screenshot`}>
@@ -697,6 +697,28 @@ export default function LandingPage() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="landing-section landing-final-cta">
+          <div className="landing-final-cta-copy">
+            <span className="landing-final-cta-kicker">
+              {isFr ? 'Votre espace FinCoach' : 'Your FinCoach space'}
+            </span>
+            <h2>
+              {isFr
+                ? 'Ouvrez FinCoach et mettez votre mois en clair.'
+                : 'Open FinCoach and make your month clear.'}
+            </h2>
+            <p>
+              {isFr
+                ? 'Créez un compte, chargez la démo ou importez un CSV, puis consultez tableau de bord, transactions, objectifs et recommandations IA.'
+                : 'Create an account, load the demo or import a CSV, then explore dashboards, transactions, goals and AI recommendations.'}
+            </p>
+          </div>
+          <Link className="landing-final-cta-button" to="/login">
+            {isFr ? "Explorons l'application" : 'Explore the app'}
+            <ArrowRight size={18} strokeWidth={1.9} />
+          </Link>
         </section>
       </main>
 

@@ -6,6 +6,7 @@ import { CurrencyProvider } from './context/CurrencyContext';
 import PrivateRoute from './components/PrivateRoute';
 import FinCoachShell from './components/fincoach/FinCoachShell';
 import LandingPage from './pages/LandingPage';
+import LandingPage2 from './pages/LandingPage2';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -24,6 +25,7 @@ export default function App() {
         <AuthProvider>
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/dossier" element={<LandingPage2 />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<PrivateRoute />}>
